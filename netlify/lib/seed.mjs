@@ -1,0 +1,870 @@
+// Dati iniziali del sito (fotografia del 30/10/2026). Calendario, classifica e marcatori
+// vengono poi aggiornati in automatico dal sito del campionato.
+
+const SQUADRA = {
+  nome: "Gin Tonici F.C.",
+  nomeUfficiale: "GIN TONICI FC",
+  motto: "Tanto ghiaccio, poca tattica",
+  campionato: "Calciotto AREA SPORT/ASI Verona · Serie B 2026/27",
+  campo: "Centro Sportivo Bottagisio, Verona",
+  fondazione: "2013",
+  linkCampionato: "https://www.areasport.org/calendario/969/42",
+  fotoSquadra: "/assets/foto/squadra-2026.jpg",
+};
+
+export const EMPTY = {
+  demo: false,
+  squadra: SQUADRA,
+  societa: { intro: "", organigramma: [], valori: "" },
+  rosa: [],
+  partite: [],
+  classifica: [],
+  classificaAggiornata: null,
+  marcatoriUfficiali: [],
+  pagelle: [],
+  foto: [],
+  link: [],
+  aggiornato: null,
+};
+
+export const SEED = {
+  demo: false,
+  squadra: SQUADRA,
+  societa: {
+    intro: "Raccontate qui la storia della società: come è nata, chi ha avuto l'idea, perché proprio questo nome.\n\nCredenze societarie: il riscaldamento è un'opinione, il terzo tempo è obbligatorio.",
+    organigramma: [],
+    valori: "",
+  },
+  rosa: [
+   {
+    "id": "p1",
+    "numero": 45,
+    "nome": "Paolo Anelli",
+    "soprannome": "POL",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "01-24",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p2",
+    "numero": 9,
+    "nome": "Salvatore Baffa",
+    "soprannome": "SASÀ",
+    "alias": "BAFFA",
+    "ruolo": "",
+    "compleanno": "04-28",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p3",
+    "numero": "",
+    "nome": "Antonio Baffa",
+    "soprannome": "ANTO",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "08-27",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p4",
+    "numero": "",
+    "nome": "Francesco Beghini",
+    "soprannome": "CHICCO",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "05-29",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p5",
+    "numero": "",
+    "nome": "Andrea Bottona",
+    "soprannome": "",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p6",
+    "numero": 6,
+    "nome": "Paolo Carocci",
+    "soprannome": "CAROCCI",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "12-28",
+    "foto": "/assets/rosa/carocci.jpg",
+    "bio": ""
+   },
+   {
+    "id": "p7",
+    "numero": "",
+    "nome": "Zeno Cavaggioni",
+    "soprannome": "L'AVVOCATO",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "10-31",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p8",
+    "numero": 7,
+    "nome": "Alessandro Colorà",
+    "soprannome": "ALCOL",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "07-23",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p9",
+    "numero": 94,
+    "nome": "Francesco Commisso",
+    "soprannome": "COMMO",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "02-10",
+    "foto": "/assets/rosa/commo.jpg",
+    "bio": ""
+   },
+   {
+    "id": "p10",
+    "numero": "",
+    "nome": "Marco Cont",
+    "soprannome": "",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "10-08",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p11",
+    "numero": "",
+    "nome": "Jacopo De Rossi",
+    "soprannome": "APO",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "12-27",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p12",
+    "numero": 4,
+    "nome": "Lorenzo De Stefano",
+    "soprannome": "LORI",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "01-04",
+    "foto": "/assets/rosa/lori.jpg",
+    "bio": ""
+   },
+   {
+    "id": "p13",
+    "numero": 22,
+    "nome": "Raffaele Federico",
+    "soprannome": "RAFFA",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "07-14",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p14",
+    "numero": 3,
+    "nome": "Carlo Alberto Forcellini",
+    "soprannome": "FUCE",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "01-19",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p15",
+    "numero": 10,
+    "nome": "Antonio Fratta Pasini",
+    "soprannome": "BAS-TONY",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "05-18",
+    "foto": "/assets/rosa/bastony.jpg",
+    "bio": ""
+   },
+   {
+    "id": "p16",
+    "numero": 13,
+    "nome": "Tommaso Gaspari",
+    "soprannome": "TOMVP",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "10-20",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p17",
+    "numero": 20,
+    "nome": "Giacomo Gottardi",
+    "soprannome": "JACK",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "02-05",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p18",
+    "numero": 16,
+    "nome": "Alessandro Liut",
+    "soprannome": "LIUT",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "03-12",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p19",
+    "numero": "",
+    "nome": "Federico Melotto",
+    "soprannome": "FEDE",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p20",
+    "numero": 2,
+    "nome": "Daniele Meneghetti",
+    "soprannome": "DANI",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "04-19",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p21",
+    "numero": "",
+    "nome": "Giacomo Meneghetti",
+    "soprannome": "",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "05-16",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p22",
+    "numero": "",
+    "nome": "Giuseppe Commisso",
+    "soprannome": "",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "09-10",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p23",
+    "numero": "",
+    "nome": "Mattia Bellesini",
+    "soprannome": "",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "09-05",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p24",
+    "numero": "",
+    "nome": "Alessio Negretti",
+    "soprannome": "ALESSIO",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "03-09",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p25",
+    "numero": 18,
+    "nome": "Andrea Nico",
+    "soprannome": "ANDRE",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "01-18",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p26",
+    "numero": 24,
+    "nome": "Giovanni Rigodanza",
+    "soprannome": "GIONANA",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "10-02",
+    "foto": "/assets/rosa/gionana.jpg",
+    "bio": ""
+   },
+   {
+    "id": "p27",
+    "numero": 5,
+    "nome": "Isacco Rossi",
+    "soprannome": "IGOR",
+    "alias": "ISIS",
+    "ruolo": "",
+    "compleanno": "12-09",
+    "foto": "/assets/rosa/isacco.jpg",
+    "bio": ""
+   },
+   {
+    "id": "p28",
+    "numero": "",
+    "nome": "Giovanni Rossi",
+    "soprannome": "GIOSI",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "08-05",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p29",
+    "numero": 73,
+    "nome": "Giacomo Spada",
+    "soprannome": "SPADA",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "04-14",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p30",
+    "numero": "",
+    "nome": "Emmanuel Udoye",
+    "soprannome": "",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "07-25",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p31",
+    "numero": 77,
+    "nome": "Paolo Vignozzi",
+    "soprannome": "IL PILOTA",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "05-09",
+    "foto": "",
+    "bio": ""
+   },
+   {
+    "id": "p32",
+    "numero": 11,
+    "nome": "Alessandro Vittoria",
+    "soprannome": "ALDO",
+    "alias": "ALE V",
+    "ruolo": "",
+    "compleanno": "10-30",
+    "foto": "/assets/rosa/aldo.jpg",
+    "bio": ""
+   },
+   {
+    "id": "p33",
+    "numero": 8,
+    "nome": "Giovanni Vittoria",
+    "soprannome": "iGIO",
+    "alias": "",
+    "ruolo": "",
+    "compleanno": "08-23",
+    "foto": "",
+    "bio": ""
+   }
+  ],
+  partite: [
+ {
+  "id": "as1-savalreunited",
+  "giornata": 1,
+  "data": "2026-09-29",
+  "ora": "21:45",
+  "avversario": "SAVAL REUNITED",
+  "casa": true,
+  "gf": 4,
+  "gs": 2,
+  "campo": "Bottagisio 4",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as2-gemmapizzeria",
+  "giornata": 2,
+  "data": "2026-10-07",
+  "ora": "21:00",
+  "avversario": "GEMMA PIZZERIA",
+  "casa": false,
+  "gf": 5,
+  "gs": 6,
+  "campo": "Bottagisio 3B",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as3-magicfc",
+  "giornata": 3,
+  "data": "2026-10-12",
+  "ora": "21:55",
+  "avversario": "MAGIC F.C.",
+  "casa": true,
+  "gf": 5,
+  "gs": 1,
+  "campo": "Bottagisio 3B",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as4-bpvfc",
+  "giornata": 4,
+  "data": "2026-10-20",
+  "ora": "21:45",
+  "avversario": "BPV FC",
+  "casa": true,
+  "gf": 2,
+  "gs": 1,
+  "campo": "Bottagisio 4",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as5-thesheffield",
+  "giornata": 5,
+  "data": "2026-10-27",
+  "ora": "20:45",
+  "avversario": "THE SHEFFIELD",
+  "casa": false,
+  "gf": 7,
+  "gs": 1,
+  "campo": "Bottagisio 4",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as6-rapidscavipermabodaasd",
+  "giornata": 6,
+  "data": "2026-11-04",
+  "ora": "21:55",
+  "avversario": "RAPID SCAVI PERMABODA ASD",
+  "casa": true,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 3B",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as7-deportivoalpoel",
+  "giornata": 7,
+  "data": "2026-11-10",
+  "ora": "21:45",
+  "avversario": "DEPORTIVO ALPOEL",
+  "casa": false,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 4",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as8-uscatenabarlume",
+  "giornata": 8,
+  "data": "2026-11-16",
+  "ora": "21:00",
+  "avversario": "US CATENA BAR LUME",
+  "casa": false,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 3B",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as9-unitedteamfc",
+  "giornata": 9,
+  "data": "2026-11-23",
+  "ora": "21:55",
+  "avversario": "UNITED TEAM F.C.",
+  "casa": true,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 3B",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as10-savalreunited",
+  "giornata": 10,
+  "data": "2027-02-09",
+  "ora": "21:30",
+  "avversario": "SAVAL REUNITED",
+  "casa": false,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 4",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as11-gemmapizzeria",
+  "giornata": 11,
+  "data": "2027-02-16",
+  "ora": "21:30",
+  "avversario": "GEMMA PIZZERIA",
+  "casa": true,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 4",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as12-magicfc",
+  "giornata": 12,
+  "data": "2027-02-22",
+  "ora": "21:55",
+  "avversario": "MAGIC F.C.",
+  "casa": false,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 3B",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as13-bpvfc",
+  "giornata": 13,
+  "data": "2027-03-02",
+  "ora": "21:30",
+  "avversario": "BPV FC",
+  "casa": false,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 4",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as14-thesheffield",
+  "giornata": 14,
+  "data": "2027-03-09",
+  "ora": "20:30",
+  "avversario": "THE SHEFFIELD",
+  "casa": true,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 4",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as15-rapidscavipermabodaasd",
+  "giornata": 15,
+  "data": "2027-03-17",
+  "ora": "21:55",
+  "avversario": "RAPID SCAVI PERMABODA ASD",
+  "casa": false,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 3B",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as16-deportivoalpoel",
+  "giornata": 16,
+  "data": "2027-03-24",
+  "ora": "21:55",
+  "avversario": "DEPORTIVO ALPOEL",
+  "casa": true,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 3B",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as17-uscatenabarlume",
+  "giornata": 17,
+  "data": "2027-04-05",
+  "ora": "21:00",
+  "avversario": "US CATENA BAR LUME",
+  "casa": true,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 3B",
+  "extId": "",
+  "marcatori": ""
+ },
+ {
+  "id": "as18-unitedteamfc",
+  "giornata": 18,
+  "data": "2027-04-12",
+  "ora": "21:55",
+  "avversario": "UNITED TEAM F.C.",
+  "casa": false,
+  "gf": null,
+  "gs": null,
+  "campo": "Bottagisio 3B",
+  "extId": "",
+  "marcatori": ""
+ }
+],
+  classifica: [
+ {
+  "squadra": "GEMMA PIZZERIA",
+  "pt": 15,
+  "g": 5,
+  "v": 5,
+  "n": 0,
+  "p": 0,
+  "gf": 16,
+  "gs": 7
+ },
+ {
+  "squadra": "GIN TONICI FC",
+  "pt": 12,
+  "g": 5,
+  "v": 4,
+  "n": 0,
+  "p": 1,
+  "gf": 23,
+  "gs": 11
+ },
+ {
+  "squadra": "BPV FC",
+  "pt": 10,
+  "g": 5,
+  "v": 3,
+  "n": 1,
+  "p": 1,
+  "gf": 17,
+  "gs": 10
+ },
+ {
+  "squadra": "MAGIC F.C.",
+  "pt": 9,
+  "g": 5,
+  "v": 3,
+  "n": 0,
+  "p": 2,
+  "gf": 18,
+  "gs": 12
+ },
+ {
+  "squadra": "UNITED TEAM F.C.",
+  "pt": 7,
+  "g": 5,
+  "v": 2,
+  "n": 1,
+  "p": 2,
+  "gf": 21,
+  "gs": 14
+ },
+ {
+  "squadra": "RAPID SCAVI PERMABODA ASD",
+  "pt": 7,
+  "g": 5,
+  "v": 2,
+  "n": 1,
+  "p": 2,
+  "gf": 15,
+  "gs": 19
+ },
+ {
+  "squadra": "US CATENA BAR LUME",
+  "pt": 6,
+  "g": 5,
+  "v": 2,
+  "n": 0,
+  "p": 3,
+  "gf": 15,
+  "gs": 21
+ },
+ {
+  "squadra": "DEPORTIVO ALPOEL",
+  "pt": 4,
+  "g": 5,
+  "v": 1,
+  "n": 1,
+  "p": 3,
+  "gf": 14,
+  "gs": 17
+ },
+ {
+  "squadra": "THE SHEFFIELD",
+  "pt": 3,
+  "g": 5,
+  "v": 1,
+  "n": 0,
+  "p": 4,
+  "gf": 8,
+  "gs": 18
+ },
+ {
+  "squadra": "SAVAL REUNITED",
+  "pt": 0,
+  "g": 5,
+  "v": 0,
+  "n": 0,
+  "p": 5,
+  "gf": 8,
+  "gs": 26
+ }
+],
+  classificaAggiornata: "2026-10-30T11:45:00.000Z",
+  marcatoriUfficiali: [
+ {
+  "nome": "Baffa Salvatore",
+  "gol": 7
+ },
+ {
+  "nome": "Meneghetti Daniele",
+  "gol": 4
+ },
+ {
+  "nome": "Commisso Francesco",
+  "gol": 4
+ },
+ {
+  "nome": "Bellesini Mattia",
+  "gol": 3
+ },
+ {
+  "nome": "Carocci Paolo",
+  "gol": 3
+ },
+ {
+  "nome": "Fratta Pasini Antonio",
+  "gol": 1
+ },
+ {
+  "nome": "Rossi Isacco",
+  "gol": 1
+ }
+],
+  pagelle: [
+   {
+    "id": "pg5",
+    "partitaId": "as5-thesheffield",
+    "titolo": "Sette bicchieri a Sheffield",
+    "data": "2026-10-28",
+    "intro": "",
+    "voti": [
+     {
+      "nome": "GIONANA",
+      "voto": "5,5",
+      "valore": 5.5,
+      "commento": "Diciamolo, non lo teniamo mica in squadra per le sue doti tra i pali, ma piuttosto per come riesce ogni volta a caricare la truppa sfruttando mezze provocazioni degli avversari/di sfragghy o video musicali dimenticati…consci di questo i compagni ergono una doppia diga tra centrocampo e difesa per evitare inutili rischi…il tutto regge fino al primo tiro in porta degli avversari allo scadere del primo tempo…punizione centrale e pertugio trovato tra le ali del nostro paperumma…”ma il pallone era sgonfio” dirà lui…certo certo.",
+      "etichetta": "MARMOTTA"
+     },
+     {
+      "nome": "LORI",
+      "voto": "7",
+      "valore": 7,
+      "commento": "Dopo il turno di riposo della giornata precedente, scende in campo determinato a riconquistare la maglia da titolare e lo fa vestendo l’uniforme del professore che insegna calcio ai giovani studenti avversari. Dalle sue parti non si passa…e si concede il lusso di esibirsi in lanci a trivela per i compagni sulle fasce cortesia delle sue nuove scarpe con grip sul tacco…solo per giocatori di vera classe.",
+      "etichetta": "O’ PROFESSO’"
+     },
+     {
+      "nome": "ISIS",
+      "voto": "7,5",
+      "valore": 7.5,
+      "commento": "Inizio ad essere a corto di aggettivi per questo difensore. Se Lori è il Professore, lui è il Mago. Da un lato con la bacchetta lancia un incantesimo a protezione dell’area di rigore consentendo al portero di dormire sonni tranquilli, dall’altro si slancia in avanti timbrando il cartellino con un tocco preciso all’angolino basso alla Thuram su assist al bacio di Commo.",
+      "etichetta": "GANDALF"
+     },
+     {
+      "nome": "COPPIA CAROCCI / COMMO",
+      "voto": "8",
+      "valore": 8,
+      "commento": "Pagella unica perché ormai sono una single unit. Se dietro c’era la muraglia cinese…a centrocampo c’era la diga di Assuan. Sulla mediana non passa un pallone e i due si permettono il lusso di umiliare ripetutamente gli avversari con tunnel e veroniche alla Zidane. Un gol per Commo (e due assist), due gol per Carocci che però poteva contare sul bonus dei biscotti “magici”…",
+      "etichetta": "GEMELLI DERRICK"
+     },
+     {
+      "nome": "DANI",
+      "voto": "6,5",
+      "valore": 6.5,
+      "commento": "Gli amici di The Sheffield pensavano che la partita con noi non sarebbe stata abbastanza allenante…allora per aiutarli gli abbiamo concesso di fare le ripetute con il Dani. Non riuscivano tanto a stargli dietro, ma almeno hanno fatto fiato…Gli manca solo il gol, ma perché da quando ha cambiato le scarpe (per non essere troppo forte) deve ancora aggiustare la mira…arriverà…",
+      "etichetta": "NADIO BATTOCLETTI"
+     },
+     {
+      "nome": "ALCOL",
+      "voto": "6,5",
+      "valore": 6.5,
+      "commento": "Visto che non volevamo fare allenare solo il terzino destro, dall’altro lato abbiamo messo Alcol…però il terzino sinistro ha chiesto di lasciare l’allenamento con noi e andare a quello post partita…perché era stufo di vederselo spuntare da tutte le parti. Non si fa così…",
+      "etichetta": "ONNIPRESENTE"
+     },
+     {
+      "nome": "POL",
+      "voto": "6",
+      "valore": 6,
+      "commento": "Sbaglio se dico che è la prima presenza stagionale? Buona prova anche se avrebbe potuto condirla con un paio di gol...questo lo lascia con un po’ di appetito che viene placato da Piero.",
+      "etichetta": "SFAMATO"
+     },
+     {
+      "nome": "ALE V",
+      "voto": "6",
+      "valore": 6,
+      "commento": "Arriva in ritardo perché doveva verificare il risultato dell’allenamento total body di sua moglie…e per questo è scusato. Anche lui concorda con Gionana sul fatto che il pallone fosse bucato, ma sospetto lo dica solo per compassione verso il compagno minorato. Prova ripetutamente a mettere il suo nome sul tabellino, ma si scontra con il portiere avversario che nel secondo tempo si traveste da Buffon (un po’ tardi se volete il mio parere…). Di base gli fanno pena i portieri e non li vuole far soffrire.",
+      "etichetta": "COMPASSIONEVOLE"
+     },
+     {
+      "nome": "GIOSI (spero si scriva così)",
+      "voto": "6+",
+      "valore": 6.25,
+      "commento": "Quando ho visto entrare la maglia numero 22, mi è venuto un brivido…e anche ad Ale V…, ma il salto di qualità di questo nuovo acquisto rubato sul mercato è evidente. È ancora in fase di recupero dell’infortunio, ma spara una serie di colpi di tacco che ci fanno intravedere quello di cui è capace. La campagna acquisti di quest’anno ci fa già sognare.",
+      "etichetta": "ARRAFFATO"
+     },
+     {
+      "nome": "BAFFA",
+      "voto": "8,5",
+      "valore": 8.5,
+      "commento": "Ma devo veramente scriverla? Non basta il coro fatto su misura per lui???",
+      "etichetta": "BAFFA GOOOOOOOOOOOOOOL"
+     },
+     {
+      "nome": "BAS-TONY",
+      "voto": "s.v.",
+      "valore": null,
+      "commento": "stasera il turno di riposo tocca a lui, ma da vero uomo squadra non si esime dal presentarsi da Piero, dove ordina per tutti una birra di qualità scadente e per se stesso una coppa di champagne…Glielo concediamo perché sa già che la prossima non sarà così facile attorniato da tildi varie.",
+      "etichetta": "RIP – REST IN PIERO"
+     }
+    ],
+    "mvp": "BAFFA",
+    "flop": "GIONANA",
+    "foto": ""
+   }
+  ],
+  foto: [{ key: "static-squadra-2026", url: "/assets/foto/squadra-2026.jpg", didascalia: "La rosa 2026/27 prima del calcio d'inizio", data: "2026-10-30" }],
+  link: [
+    { "titolo": "Calendario ufficiale", "url": "https://www.areasport.org/calendario/969/42" },
+    { "titolo": "Classifica ufficiale", "url": "https://www.areasport.org/classifica/969/42" },
+    { "titolo": "Marcatori ufficiali", "url": "https://www.areasport.org/marcatori/969/42" }
+  ],
+  aggiornato: "2026-10-30T11:45:00.000Z",
+};

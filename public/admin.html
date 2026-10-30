@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Gin Tonici F.C.</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0d3b3c">
+<link rel="icon" href="/assets/logo-dark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/admin.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/"><img src="/assets/logo.svg" alt=""><span>Admin</span></a>
+    <a href="/" style="margin-left:auto;color:var(--lime);font-weight:700">← Torna al sito</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section id="login" class="card login">
+      <h2>Spogliatoio riservato</h2>
+      <p>Inserisci la password della società per aggiornare il sito.</p>
+      <form id="login-form">
+        <input type="password" id="pwd" placeholder="Password" autocomplete="current-password" required>
+        <button class="btn" type="submit">Entra</button>
+      </form>
+      <p id="login-msg" class="msg"></p>
+    </section>
+
+    <section id="panel" hidden>
+      <div id="demo-note" class="notice" hidden>
+        Il sito mostra ancora i <strong>dati di esempio</strong>. Quando sei pronto, vai in <em>Impostazioni</em> e premi “Azzera dati di esempio”.
+      </div>
+      <nav class="tabs" role="tablist" id="tabs"></nav>
+      <div id="tab-body"></div>
+    </section>
+  </div>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="/assets/admin.js"></script>
+</body>
+</html>
