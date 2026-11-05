@@ -309,10 +309,18 @@ function renderPagelle(data) {
     if (pg.mvp && pg.mvp === v.nome) cur.mvp++;
     agg.set(key, cur);
   }
+  // presenze: dalle distinte ufficiali del campionato (tutte le partite, anche senza pagella)
+  const hasDistinte = (data.partite || []).some((p) => p.distinta?.presenti?.length);
+  const pres = new Map();
+  for (const p of data.partite || []) for (const n of p.distinta?.presenti || []) {
+    const pl = matchPlayer(n, data.rosa);
+    if (pl) pres.set(pl.id, (pres.get(pl.id) || 0) + 1);
+  }
+  for (const [key, r] of agg) r.pres = pres.get(key) ?? (hasDistinte ? 0 : r.n);
   const avgRows = [...agg.values()].map((r) => ({ ...r, avg: r.sum / r.n })).sort((a, b) => b.avg - a.avg);
   const avgTable = avgRows.length > 0 && list.length > 0 ? `<div class="card section"><h3>Media voto stagionale</h3><div class="table-wrap"><table>
-      <thead><tr><th>#</th><th class="l">Giocatore</th><th>Presenze</th><th>🍋</th><th>Media</th></tr></thead>
-      <tbody>${avgRows.map((r, i) => `<tr><td class="pos">${i + 1}</td><td class="l">${esc(r.nome)}</td><td>${r.n}</td><td>${r.mvp || ""}</td><td class="pts">${r.avg.toFixed(2).replace(".", ",")}</td></tr>`).join("")}</tbody>
+      <thead><tr><th>#</th><th class="l">Giocatore</th><th>Presenze</th><th>Voti</th><th>🍋</th><th>Media</th></tr></thead>
+      <tbody>${avgRows.map((r, i) => `<tr><td class="pos">${i + 1}</td><td class="l">${esc(r.nome)}</td><td>${r.pres}</td><td>${r.n}</td><td>${r.mvp || ""}</td><td class="pts">${r.avg.toFixed(2).replace(".", ",")}</td></tr>`).join("")}</tbody>
     </table></div></div>` : "";
 
   return `${pageHead("Le Pagelle", "Voti insindacabili, commenti querelabili")}

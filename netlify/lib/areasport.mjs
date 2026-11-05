@@ -171,12 +171,15 @@ export function parseMarcatori(html, team) {
   return out;
 }
 
-async function get(url) {
+// ok: controllo sul contenuto. Il sito del campionato a volte risponde "errore 500"
+// pur mandando la pagina completa (succede con le distinte): se il contenuto c'è, lo usiamo.
+async function get(url, ok) {
   const r = await fetch(url, {
     headers: { "user-agent": "Mozilla/5.0 (compatible; GinToniciFC-site/1.0)", "accept-language": "it-IT,it;q=0.9" },
   });
-  if (!r.ok) throw new Error(`${url} ha risposto ${r.status}`);
-  return r.text();
+  const body = await r.text();
+  if (r.ok || (ok && ok(body))) return body;
+  throw new Error(`${url} ha risposto ${r.status}`);
 }
 
 // Aggiorna l'oggetto dati del sito. Le partite esistenti vengono riconosciute
@@ -219,11 +222,12 @@ export async function syncFromAreaSport(data) {
     !p.distinta?.presenti?.length || p.distinta.ris !== `${p.gf}-${p.gs}` || (p.data && new Date(p.data).getTime() >= recent)
   ));
   let distinte = 0;
-  for (const p of daLeggere) {
+  const conDistinta = (h) => /class="players"/.test(h);
+  await Promise.all(daLeggere.map(async (p) => {
     try {
-      const d = parseDistinta(await get(`${base.origin}/partita/${p.extId}${tail}`));
+      const d = parseDistinta(await get(`${base.origin}/partita/${p.extId}${tail}`, conDistinta));
       const nostra = sameTeam(d.casa?.squadra, team) ? d.casa : sameTeam(d.ospite?.squadra, team) ? d.ospite : p.casa ? d.casa : d.ospite;
-      if (!nostra?.giocatori?.length) continue;
+      if (!nostra?.giocatori?.length) return;
       p.distinta = {
         ris: `${p.gf}-${p.gs}`,
         presenti: nostra.giocatori.map((g) => g.nome),
@@ -236,7 +240,7 @@ export async function syncFromAreaSport(data) {
     } catch (e) {
       console.error(`Distinta ${p.extId} non letta:`, e.message);
     }
-  }
+  }));
 
   data.risultati = risultati;
   if (classifica.length) {
