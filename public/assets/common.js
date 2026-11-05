@@ -3,6 +3,15 @@
 export const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+// Come esc(), ma rende cliccabili gli indirizzi web (i link YouTube diventano "▶ Guarda su YouTube")
+export const linkify = (s) =>
+  esc(s).replace(/https?:\/\/[^\s<]+/g, (m) => {
+    const url = m.replace(/[.,;:!?)…]+$/, "");
+    const tail = m.slice(url.length);
+    const label = /youtu\.?be/.test(url) ? "▶ Guarda su YouTube" : url;
+    return `<a href="${url}" target="_blank" rel="noopener">${label}</a>${tail}`;
+  });
+
 export async function loadData() {
   try {
     const r = await fetch("/api/data", { cache: "no-store" });
@@ -76,6 +85,18 @@ export function parseScorers(str) {
       if (m && m[1].trim()) return { nome: m[1].trim(), gol: Number(m[2]) };
       return { nome: s, gol: 1 };
     });
+}
+
+// Marcatori di una nostra partita: dalla distinta ufficiale se c'è, altrimenti quelli inseriti a mano
+export function matchScorers(p) {
+  if (p?.distinta?.marcatori?.length) return p.distinta.marcatori;
+  return parseScorers(p?.marcatori);
+}
+
+// Nome da mostrare per un giocatore letto da distinta o marcatori: soprannome se in rosa
+export function displayName(name, rosa) {
+  const pl = matchPlayer(name, rosa);
+  return pl ? pl.soprannome || pl.nome : name;
 }
 
 export function scorersTable(data) {

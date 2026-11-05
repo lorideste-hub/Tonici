@@ -57,8 +57,8 @@ function parseDateTime(s) {
   return { data, ora };
 }
 
-// Tutte le partite della squadra indicata
-export function parseCalendario(html, team) {
+// Tutte le partite del campionato (anche quelle degli avversari)
+export function parseRisultati(html) {
   const out = [];
   let giornata = null;
   for (const r of rows(html)) {
@@ -66,25 +66,72 @@ export function parseCalendario(html, team) {
     if (g) { giornata = Number(g[1]); continue; }
     if (r.th || r.cells.length < 4) continue;
     const [dt, casa, ris, ospite, campo = ""] = r.cells;
-    const isCasa = sameTeam(casa, team);
-    const isOspite = sameTeam(ospite, team);
-    if (!isCasa && !isOspite) continue;
+    if (!casa || !ospite) continue;
     const { data, ora } = parseDateTime(dt);
     const sm = ris.match(/(\d+)\s*-\s*(\d+)/);
-    const gc = sm ? Number(sm[1]) : null;
-    const go = sm ? Number(sm[2]) : null;
     const partita = (r.raw[2] || "").match(/\/partita\/(\d+)/);
     out.push({
-      giornata,
-      data,
-      ora,
-      avversario: isCasa ? ospite : casa,
-      casa: isCasa,
-      gf: sm ? (isCasa ? gc : go) : null,
-      gs: sm ? (isCasa ? go : gc) : null,
+      giornata, data, ora, casa, ospite,
+      gc: sm ? Number(sm[1]) : null,
+      go: sm ? Number(sm[2]) : null,
       campo,
       extId: partita ? partita[1] : "",
     });
+  }
+  return out;
+}
+
+// Le partite della squadra indicata, dal suo punto di vista
+export function parseCalendario(html, team) {
+  return parseRisultati(html)
+    .filter((r) => sameTeam(r.casa, team) || sameTeam(r.ospite, team))
+    .map((r) => {
+      const isCasa = sameTeam(r.casa, team);
+      const played = r.gc !== null;
+      return {
+        giornata: r.giornata,
+        data: r.data,
+        ora: r.ora,
+        avversario: isCasa ? r.ospite : r.casa,
+        casa: isCasa,
+        gf: played ? (isCasa ? r.gc : r.go) : null,
+        gs: played ? (isCasa ? r.go : r.gc) : null,
+        campo: r.campo,
+        extId: r.extId,
+      };
+    });
+}
+
+// Distinta di una partita (pagina /partita/NNN/...): giocatori presenti, gol e cartellini per squadra.
+// Ogni squadra è un <div class="homeys team"> o <div class="visitors team"> con una tabella:
+// nome (con "(C)" per il capitano) · gol ("2 x" con l'icona del pallone) · cartellini (giallo.png / rosso.png)
+export function parseDistinta(html) {
+  const squadra = {};
+  for (const m of html.matchAll(/<div[^>]*class="[^"]*\b(homeys|visitors)\b[^"]*"[^>]*>\s*<h3[^>]*>([\s\S]*?)<\/h3>/gi)) {
+    squadra[m[1].toLowerCase()] ||= text(m[2]);
+  }
+  const out = {};
+  const blockRe = /<div[^>]*class="[^"]*\b(homeys|visitors)\b[^"]*\bteam\b[^"]*"[^>]*>([\s\S]*?)<\/table>/gi;
+  let b;
+  while ((b = blockRe.exec(html))) {
+    const home = b[1].toLowerCase() === "homeys";
+    const giocatori = [];
+    for (const r of rows(b[2])) {
+      if (r.th || !r.cells[0]) continue;
+      const capitano = /\(c\)/i.test(r.cells[0]);
+      const nome = r.cells[0].replace(/\(c\)/i, "").replace(/\s+/g, " ").trim();
+      if (!nome) continue;
+      const rest = r.raw.slice(1).join(" ");
+      const gm = r.cells.slice(1).join(" ").match(/(\d+)\s*x/i);
+      giocatori.push({
+        nome,
+        capitano,
+        gol: gm ? Number(gm[1]) : /pallone/i.test(rest) ? 1 : 0,
+        giallo: /giallo/i.test(rest),
+        rosso: /rosso/i.test(rest),
+      });
+    }
+    out[home ? "casa" : "ospite"] = { squadra: squadra[home ? "homeys" : "visitors"] || "", giocatori };
   }
   return out;
 }
@@ -141,6 +188,7 @@ export async function syncFromAreaSport(data) {
   const u = urlsFrom(link);
   const [cal, cla, mar] = await Promise.all([get(u.calendario), get(u.classifica), get(u.marcatori)]);
 
+  const risultati = parseRisultati(cal);
   const partite = parseCalendario(cal, team);
   const classifica = parseClassifica(cla);
   const marcatori = parseMarcatori(mar, team);
@@ -158,13 +206,44 @@ export async function syncFromAreaSport(data) {
       id: prev?.id || `as${p.extId || `${p.giornata}-${norm(p.avversario)}`}`,
       ...p,
       marcatori: prev?.marcatori || "",
+      ...(prev?.distinta ? { distinta: prev.distinta } : {}),
     };
   });
+
+  // Distinte delle nostre partite giocate (presenze e marcatori). Si rileggono se mancano,
+  // se il risultato è cambiato o se la partita è dell'ultima settimana (la distinta può arrivare dopo).
+  const base = new URL(u.calendario);
+  const tail = base.pathname.replace(/^\/calendario/, "");
+  const recent = Date.now() - 8 * 86400000;
+  const daLeggere = data.partite.filter((p) => p.extId && p.gf !== null && (
+    !p.distinta?.presenti?.length || p.distinta.ris !== `${p.gf}-${p.gs}` || (p.data && new Date(p.data).getTime() >= recent)
+  ));
+  let distinte = 0;
+  for (const p of daLeggere) {
+    try {
+      const d = parseDistinta(await get(`${base.origin}/partita/${p.extId}${tail}`));
+      const nostra = sameTeam(d.casa?.squadra, team) ? d.casa : sameTeam(d.ospite?.squadra, team) ? d.ospite : p.casa ? d.casa : d.ospite;
+      if (!nostra?.giocatori?.length) continue;
+      p.distinta = {
+        ris: `${p.gf}-${p.gs}`,
+        presenti: nostra.giocatori.map((g) => g.nome),
+        capitano: nostra.giocatori.find((g) => g.capitano)?.nome || "",
+        marcatori: nostra.giocatori.filter((g) => g.gol > 0).map((g) => ({ nome: g.nome, gol: g.gol })),
+        ammoniti: nostra.giocatori.filter((g) => g.giallo).map((g) => g.nome),
+        espulsi: nostra.giocatori.filter((g) => g.rosso).map((g) => g.nome),
+      };
+      distinte++;
+    } catch (e) {
+      console.error(`Distinta ${p.extId} non letta:`, e.message);
+    }
+  }
+
+  data.risultati = risultati;
   if (classifica.length) {
     data.classifica = classifica;
     data.classificaAggiornata = new Date().toISOString();
   }
   data.marcatoriUfficiali = marcatori;
   data.ultimoSync = new Date().toISOString();
-  return { partite: data.partite.length, squadre: classifica.length, marcatori: marcatori.length };
+  return { partite: data.partite.length, risultati: risultati.length, distinte, squadre: classifica.length, marcatori: marcatori.length };
 }

@@ -1,5 +1,5 @@
 import {
-  esc, fmtDate, isPlayed, sortedMatches, parsePagelle, parseClassifica, DEFAULT_ORDER,
+  esc, linkify, fmtDate, isPlayed, sortedMatches, parsePagelle, parseClassifica, DEFAULT_ORDER,
   sortedStandings, votoClass, uid, parseISODate,
 } from "./common.js";
 
@@ -49,7 +49,7 @@ async function syncNow(btn) {
   try {
     const j = await api("/api/sync");
     DATA = j.data;
-    toast(`Aggiornato ✔ ${j.info.partite} partite, ${j.info.squadre} squadre, ${j.info.marcatori} marcatori`);
+    toast(`Aggiornato ✔ ${j.info.partite} partite, ${j.info.risultati ?? 0} risultati, ${j.info.distinte ?? 0} distinte, ${j.info.squadre} squadre, ${j.info.marcatori} marcatori`);
     renderTabs();
   } catch (e) {
     toast(e.message, true);
@@ -196,9 +196,9 @@ LORI 7: Dalle sue parti non si passa… O’ PROFESSO’</pre>
     $("#pg-out").innerHTML = `<div class="preview">
       <h4>Anteprima · ${p.voti.length} voti letti</h4>
       ${p.titolo ? `<p><strong>${esc(p.titolo)}</strong></p>` : `<p class="small">Nessun titolo: verrà usato quello automatico.</p>`}
-      ${p.intro ? `<p class="small" style="white-space:pre-line">${esc(p.intro)}</p>` : ""}
+      ${p.intro ? `<p class="small" style="white-space:pre-line">${linkify(p.intro)}</p>` : ""}
       <p>🍋 MVP: <strong>${esc(p.mvp || "–")}</strong> · 🫧 Flop: <strong>${esc(p.flop || "–")}</strong></p>
-      <div class="votes">${p.voti.map((v) => `<div class="vote"><div class="vnum ${votoClass(v.valore)}">${esc(v.voto)}</div><div><div class="who">${esc(v.nome)}</div>${v.etichetta ? `<div class="etichetta">${esc(v.etichetta)}</div>` : ""}<div class="what">${esc(v.commento)}</div></div></div>`).join("")}</div>
+      <div class="votes">${p.voti.map((v) => `<div class="vote"><div class="vnum ${votoClass(v.valore)}">${esc(v.voto)}</div><div><div class="who">${esc(v.nome)}</div>${v.etichetta ? `<div class="etichetta">${esc(v.etichetta)}</div>` : ""}<div class="what">${linkify(v.commento)}</div></div></div>`).join("")}</div>
       ${p.voti.some((v) => v.valore === null && v.voto === "–") ? `<p class="msg err">Alcuni giocatori sono senza voto: aggiungilo dopo il nome (es. <code>BAFFA 8,5: …</code>).</p>` : ""}
       ${!p.voti.length ? `<p class="msg err">Non ho trovato voti: controlla che ogni riga sia "Nome voto commento".</p>` : ""}
     </div>`;

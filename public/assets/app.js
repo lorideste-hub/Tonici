@@ -1,7 +1,7 @@
 import {
-  esc, loadData, fmtDate, fmtDateTime, isPlayed, esito, sortedMatches, lastMatch, nextMatch,
+  esc, linkify, loadData, fmtDate, fmtDateTime, isPlayed, esito, sortedMatches, lastMatch, nextMatch,
   isUs, parseScorers, scorersTable, matchPlayer, sortedStandings, votoClass, parseISODate,
-  fmtCompleanno, nextBirthdays,
+  fmtCompleanno, nextBirthdays, matchScorers, displayName,
 } from "./common.js";
 
 const NAV = [
@@ -10,6 +10,7 @@ const NAV = [
   ["squadra", "/squadra.html", "La Squadra"],
   ["pagelle", "/pagelle.html", "Le Pagelle"],
   ["calendario", "/calendario.html", "Calendario"],
+  ["risultati", "/risultati.html", "Risultati"],
   ["classifica", "/classifica.html", "Classifica"],
   ["foto", "/foto.html", "Foto"],
 ];
@@ -60,7 +61,7 @@ function resultCard(p, data) {
   const t = teams(p, data);
   const e = esito(p);
   const pag = (data.pagelle || []).find((x) => x.partitaId === p.id);
-  const sc = parseScorers(p.marcatori);
+  const sc = matchScorers(p);
   return `<div class="card">
     <div class="label">Ultimo risultato · ${p.giornata ? `${esc(p.giornata)}ª giornata · ` : ""}${fmtDate(p.data)}</div>
     <div class="scoreline">
@@ -69,7 +70,8 @@ function resultCard(p, data) {
       <div class="team right ${!t.leftUs ? "us" : ""}">${t.right}</div>
     </div>
     <div><span class="badge ${e}">${e}</span> <span class="meta">${e === "V" ? "Si brinda!" : e === "N" ? "Mezzo bicchiere" : "Si annega il dispiacere"}</span></div>
-    ${sc.length ? `<div class="scorers">⚽ ${sc.map((s) => esc(s.nome) + (s.gol > 1 ? ` (${s.gol})` : "")).join(", ")}</div>` : ""}
+    ${sc.length ? `<div class="scorers">⚽ ${sc.map((s) => esc(displayName(s.nome, data.rosa)) + (s.gol > 1 ? ` (${s.gol})` : "")).join(", ")}</div>` : ""}
+    ${p.distinta?.presenti?.length ? `<div class="meta" style="margin-top:4px">👕 In campo: ${p.distinta.presenti.map((n) => esc(displayName(n, data.rosa))).join(", ")}</div>` : ""}
     ${pag ? `<a class="more" href="/pagelle.html#${esc(pag.id)}">Leggi le pagelle →</a>` : ""}
   </div>`;
 }
@@ -219,7 +221,8 @@ function playerStats(pl, data) {
   for (const pg of data.pagelle || []) for (const v of pg.voti || []) if (v.valore !== null && isMe(v.nome)) votes.push(v.valore);
   const avg = votes.length ? votes.reduce((a, b) => a + b, 0) / votes.length : null;
   const mvps = (data.pagelle || []).filter((pg) => pg.mvp && isMe(pg.mvp)).length;
-  return { goals, avg, n: votes.length, mvps };
+  const presenze = (data.partite || []).filter((p) => (p.distinta?.presenti || []).some(isMe)).length;
+  return { goals, avg, n: votes.length, mvps, presenze };
 }
 
 function renderSquadra(data) {
@@ -230,6 +233,7 @@ function renderSquadra(data) {
   const groups = {};
   for (const p of rosa) (groups[p.ruolo || "Rosa"] ||= []).push(p);
   const keys = [...ORDER.filter((k) => groups[k]), ...Object.keys(groups).filter((k) => !ORDER.includes(k))];
+  const hasDistinte = (data.partite || []).some((p) => p.distinta?.presenti?.length);
   return `${pageHead("La Squadra", `${rosa.length} elementi, zero alibi`)}
   <main><div class="wrap">
     ${data.squadra?.fotoSquadra ? `<figure class="team-photo"><img src="${esc(data.squadra.fotoSquadra)}" alt="Foto di squadra"></figure>` : ""}
@@ -247,6 +251,7 @@ function renderSquadra(data) {
               ${p.soprannome ? `<div class="nick">“${esc(p.soprannome)}”</div>` : ""}
               ${p.bio ? `<div class="small" style="margin-top:4px">${esc(p.bio)}</div>` : ""}
               ${k !== "Staff" ? `<div class="stats">
+                ${hasDistinte ? `<span class="chip">👕 ${st.presenze} ${st.presenze === 1 ? "presenza" : "presenze"}</span>` : ""}
                 <span class="chip">⚽ ${st.goals}</span>
                 ${st.avg !== null ? `<span class="chip">Media ${st.avg.toFixed(2).replace(".", ",")}</span>` : ""}
                 ${st.mvps ? `<span class="chip">🍋 ×${st.mvps}</span>` : ""}
@@ -277,7 +282,7 @@ function renderPagelle(data) {
           </summary>
           <div class="body">
             ${pg.foto ? `<img class="pagella-photo" src="${esc(pg.foto)}" alt="" loading="lazy">` : ""}
-            ${pg.intro ? `<div class="intro">${esc(pg.intro)}</div>` : ""}
+            ${pg.intro ? `<div class="intro">${linkify(pg.intro)}</div>` : ""}
             <div class="awards">
               ${pg.mvp ? `<div class="award mvp"><div class="t">🍋 ${MVP_LABEL}</div><div class="n">${esc(pg.mvp)}</div></div>` : ""}
               ${pg.flop ? `<div class="award flop"><div class="t">🫧 ${FLOP_LABEL}</div><div class="n">${esc(pg.flop)}</div></div>` : ""}
@@ -286,7 +291,7 @@ function renderPagelle(data) {
               .map((v) => `<div class="vote"><div class="vnum ${votoClass(v.valore)}">${esc(v.voto)}</div>
                 <div><div class="who">${esc(v.nome)}${pg.mvp && v.nome === pg.mvp ? '<span class="tag">🍋</span>' : ""}${pg.flop && v.nome === pg.flop ? '<span class="tag">🫧</span>' : ""}</div>
                 ${v.etichetta ? `<div class="etichetta">${esc(v.etichetta)}</div>` : ""}
-                <div class="what">${esc(v.commento)}</div></div></div>`)
+                <div class="what">${linkify(v.commento)}</div></div></div>`)
               .join("")}</div>
           </div>
         </details>`;
@@ -321,10 +326,11 @@ function renderCalendario(data) {
     ? list.map((p) => {
         const e = esito(p);
         const pg = (data.pagelle || []).find((x) => x.partitaId === p.id);
+        const sc = isPlayed(p) ? matchScorers(p) : [];
         return `<div class="match-row${next && next.id === p.id ? " next" : ""}">
           <div class="g">${p.giornata ? `${esc(p.giornata)}ª` : ""}</div>
           <div class="when">${fmtDate(p.data)}<small>${esc(p.ora || "")}</small></div>
-          <div class="vs">${p.casa === false ? "@ " : "vs "}${esc(p.avversario)}<small>${p.casa === false ? "Trasferta" : "Casa"}${p.campo ? ` · ${esc(p.campo)}` : ""}${pg ? ` · <a href="/pagelle.html#${esc(pg.id)}">pagelle</a>` : ""}</small></div>
+          <div class="vs">${p.casa === false ? "@ " : "vs "}${esc(p.avversario)}<small>${p.casa === false ? "Trasferta" : "Casa"}${p.campo ? ` · ${esc(p.campo)}` : ""}${pg ? ` · <a href="/pagelle.html#${esc(pg.id)}">pagelle</a>` : ""}${sc.length ? `<span class="mscorers">⚽ ${sc.map((s) => esc(displayName(s.nome, data.rosa)) + (s.gol > 1 ? ` (${s.gol})` : "")).join(", ")}</span>` : ""}</small></div>
           <div class="res">${isPlayed(p) ? `${esc(p.gf)}–${esc(p.gs)} <span class="badge ${e}">${e}</span>` : next && next.id === p.id ? '<span class="tag-next">Prossima</span>' : ""}</div>
         </div>`;
       }).join("")
@@ -334,6 +340,45 @@ function renderCalendario(data) {
   played.forEach((p) => rec[esito(p)]++);
   return `${pageHead("Calendario", `${esc(data.squadra?.campo || "")}${played.length ? ` · Bilancio: ${rec.V}V ${rec.N}N ${rec.P}P` : ""}`)}
   <main><div class="wrap"><div class="card" style="padding:0;overflow:hidden">${rows}</div></div></main>`;
+}
+
+function renderRisultati(data) {
+  const all = data.risultati || [];
+  if (!all.length) return `${pageHead("Risultati", esc(data.squadra?.campionato || ""))}<main><div class="wrap"><p class="empty">I risultati arrivano con il prossimo aggiornamento dal sito del campionato.</p></div></main>`;
+  const byG = new Map();
+  for (const r of all) {
+    const k = r.giornata ?? 0;
+    if (!byG.has(k)) byG.set(k, []);
+    byG.get(k).push(r);
+  }
+  const played = [...byG.entries()].filter(([, l]) => l.some((r) => r.gc !== null)).map(([g]) => g);
+  const nextG = [...byG.keys()].find((g) => !played.includes(g));
+  const show = [...(nextG !== undefined ? [nextG] : []), ...played.sort((a, b) => b - a)];
+  const ours = new Map((data.partite || []).filter((p) => p.extId).map((p) => [p.extId, p]));
+  const block = (g) => {
+    const list = byG.get(g);
+    const done = list.some((r) => r.gc !== null);
+    const d = list.map((r) => r.data).filter(Boolean).sort();
+    return `<div class="card res-day${done ? "" : " upcoming"}">
+      <div class="res-head"><h3>${g ? `${esc(g)}ª giornata` : "Partite"}</h3><span class="small">${done ? "" : "Prossimo turno · "}${d.length ? `${fmtDate(d[0])}${d[d.length - 1] !== d[0] ? ` – ${fmtDate(d[d.length - 1])}` : ""}` : ""}</span></div>
+      ${list.map((r) => {
+        const us = isUs(r.casa, data) || isUs(r.ospite, data);
+        const p = ours.get(r.extId);
+        const sc = us && p && r.gc !== null ? matchScorers(p) : [];
+        const win = r.gc === null ? 0 : r.gc > r.go ? 1 : r.gc < r.go ? 2 : 0;
+        return `<div class="res-row${us ? " us" : ""}">
+          <div class="h${win === 1 ? " w" : ""}">${esc(r.casa)}</div>
+          <div class="sc">${r.gc === null ? `<span class="small">${esc(r.ora || "–")}</span>` : `${esc(r.gc)} – ${esc(r.go)}`}</div>
+          <div class="a${win === 2 ? " w" : ""}">${esc(r.ospite)}</div>
+          ${sc.length ? `<div class="rs">⚽ ${sc.map((s) => esc(displayName(s.nome, data.rosa)) + (s.gol > 1 ? ` (${s.gol})` : "")).join(", ")}</div>` : ""}
+        </div>`;
+      }).join("")}
+    </div>`;
+  };
+  return `${pageHead("Risultati", `${esc(data.squadra?.campionato || "")}${data.ultimoSync ? ` · aggiornati il ${fmtDateTime(data.ultimoSync)}` : ""}`)}
+  <main><div class="wrap"><div class="res-grid">${show.map(block).join("")}</div>
+    ${data.squadra?.linkCampionato ? `<p class="small section">Fonte: <a href="${esc(data.squadra.linkCampionato)}" target="_blank" rel="noopener">sito ufficiale del campionato ↗</a></p>` : ""}
+  </div></main>`;
 }
 
 function renderClassifica(data) {
@@ -372,7 +417,7 @@ function renderFoto(data) {
   return html;
 }
 
-const RENDER = { home: renderHome, societa: renderSocieta, squadra: renderSquadra, pagelle: renderPagelle, calendario: renderCalendario, classifica: renderClassifica, foto: renderFoto };
+const RENDER = { home: renderHome, societa: renderSocieta, squadra: renderSquadra, pagelle: renderPagelle, calendario: renderCalendario, risultati: renderRisultati, classifica: renderClassifica, foto: renderFoto };
 
 (async () => {
   const app = document.getElementById("app");
