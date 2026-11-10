@@ -35,6 +35,7 @@ Apri `https://<nome>.netlify.app/admin.html`, inserisci la password.
 | Giocatori, soprannomi, foto | scheda **Rosa** |
 | Galleria | scheda **Foto** |
 | Storia, organigramma, link esterni | scheda **Società e link** |
+| Distinta di gara della prossima partita (PDF precompilato da stampare) | pulsante **Genera distinta** in Home, sotto a Prossima partita |
 | Nome, motto, link al sito del campionato, azzeramento dati di esempio | scheda **Impostazioni** |
 
 Il sito parte già con calendario, classifica e marcatori veri (al 30/10/2026). In **Rosa** ci sono i 7 marcatori ufficiali con ruolo "Jolly": completa la rosa con ruoli, numeri, soprannomi e foto.
@@ -58,3 +59,4 @@ Le righe `Titolo`, `MVP`, `Flop` sono facoltative.
 - Tutti i contenuti stanno in Netlify Blobs (store `gintonici`, chiave `site`); le foto nello store `gintonici-foto`.
 - Il piano gratuito di Netlify ha un tetto mensile di crediti: per un sito di squadra il consumo è minimo.
 - Per cambiare grafica: `public/assets/style.css` (colori in cima al file) e `public/assets/logo.svg`.
+- La distinta di gara viene compilata nel browser sul modulo ufficiale `public/assets/distinta-template.pdf` (da sostituire a inizio stagione); coordinate dei campi in `public/assets/distinta.js`.

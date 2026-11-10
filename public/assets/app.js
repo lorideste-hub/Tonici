@@ -3,6 +3,7 @@ import {
   isUs, parseScorers, scorersTable, matchPlayer, sortedStandings, votoClass, parseISODate,
   fmtCompleanno, nextBirthdays, matchScorers, displayName,
 } from "./common.js";
+import { openDistinta } from "./distinta.js";
 
 const NAV = [
   ["home", "/", "Home"],
@@ -91,6 +92,7 @@ function nextCard(p, data) {
     <p style="margin:8px 0 0;font-size:1.15rem"><strong>vs ${esc(p.avversario)}</strong> <span class="meta">(${p.casa === false ? "trasferta" : "in casa"})</span></p>
     <div class="meta">${esc(data.squadra?.campo || "")}${p.campo ? ` · campo ${esc(p.campo.replace(/^bottagisio\s*/i, ""))}` : ""}</div>
     ${cd ? `<span class="countdown">${cd}</span>` : ""}
+    <div class="card-actions"><button type="button" class="btn" data-distinta="${esc(p.id)}">📋 Genera distinta</button></div>
   </div>`;
 }
 
@@ -433,6 +435,11 @@ const RENDER = { home: renderHome, societa: renderSocieta, squadra: renderSquadr
     const data = await loadData();
     shell(data);
     app.innerHTML = (RENDER[page] || renderHome)(data);
+    app.addEventListener("click", (e) => {
+      const id = e.target.closest("[data-distinta]")?.dataset.distinta;
+      const match = id && (data.partite || []).find((p) => p.id === id);
+      if (match) openDistinta(match, data);
+    });
     if (location.hash) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
   } catch (e) {
     console.error(e);

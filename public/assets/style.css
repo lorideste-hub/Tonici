@@ -266,3 +266,36 @@ dialog.lightbox p { color: #fff; text-align: center; margin: 8px 0 0; }
 .res-row .sc { font-family: var(--display); font-size: 1.25rem; min-width: 64px; text-align: center; white-space: nowrap; }
 .res-row.us { background: var(--lime-soft); }
 .res-row .rs { grid-column: 1 / -1; text-align: center; font-size: .85rem; color: var(--juniper-soft); }
+
+/* distinta di gara */
+.card-actions { margin-top: 14px; }
+dialog.distinta {
+  border: 0; padding: 0; border-radius: var(--radius); background: var(--paper); color: var(--ink);
+  width: min(560px, calc(100vw - 24px)); max-height: min(92vh, 860px); box-shadow: 0 24px 60px -20px rgba(7, 37, 38, .6);
+}
+dialog.distinta[open] { display: flex; flex-direction: column; }
+dialog.distinta::backdrop { background: rgba(7, 37, 38, .75); }
+.dist-head { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; margin: 0; padding: 18px 18px 12px; background: var(--juniper); color: #fff; }
+.dist-head .label { color: var(--lime); }
+.dist-head h3 { margin: 4px 0; font-size: 1.35rem; color: #fff; }
+.dist-head h3 span { color: var(--lime); }
+.dist-head .meta { color: #cfe3df; }
+.dist-x { background: transparent; border: 0; color: #fff; font-size: 1.9rem; line-height: 1; cursor: pointer; padding: 0 4px; border-radius: 6px; }
+.dist-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 18px; background: var(--lime-soft); border-bottom: 1px solid var(--line); font-size: .95rem; }
+.dist-bar button { background: none; border: 0; padding: 0; font: inherit; color: var(--juniper-soft); text-decoration: underline; cursor: pointer; }
+.dist-list { list-style: none; margin: 0; padding: 4px 8px; overflow-y: auto; flex: 1 1 auto; min-height: 120px; }
+.dist-list li { display: flex; align-items: center; gap: 10px; padding: 2px 10px; border-radius: 8px; }
+.dist-list li + li { border-top: 1px solid var(--line); }
+.dist-list li.on { background: var(--tonic); }
+.dist-list label { display: flex; align-items: center; gap: 12px; flex: 1 1 auto; min-width: 0; padding: 9px 0; cursor: pointer; }
+.dist-list input[type="checkbox"] { width: 20px; height: 20px; flex: none; accent-color: var(--juniper); }
+.dist-list input:disabled + .dist-name { color: var(--muted); }
+.dist-name { font-weight: 600; overflow-wrap: anywhere; }
+.dist-name em { font-style: normal; font-weight: 500; color: var(--muted); font-size: .85rem; margin-left: 4px; white-space: nowrap; }
+.dist-pres { flex: none; font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dist-num { flex: none; width: 46px; padding: 6px 4px; text-align: center; border: 1px solid var(--line); border-radius: 8px; background: #fff; font: inherit; font-weight: 700; }
+.dist-msg { margin: 0; padding: 0 18px; min-height: 1.6em; font-size: .9rem; color: var(--muted); }
+.dist-msg.err { color: var(--bitter); font-weight: 600; }
+.dist-actions { display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 18px 18px; }
+.dist-actions .btn:disabled { opacity: .55; cursor: progress; }
+.dist-x:focus-visible, .dist-bar button:focus-visible, .dist-num:focus-visible, .dist-actions .btn:focus-visible, [data-distinta]:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
