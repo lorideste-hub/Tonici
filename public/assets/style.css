@@ -238,7 +238,7 @@ dialog.lightbox p { color: #fff; text-align: center; margin: 8px 0 0; }
 .site-footer a { color: #cfe7e1; }
 .site-footer .slogan { color: var(--lime); font-weight: 700; }
 
-.etichetta { display: inline-block; margin: 4px 0 6px; background: var(--juniper); color: var(--lime); font-family: var(--display); letter-spacing: .04em; font-size: 1.05rem; padding: 2px 10px; border-radius: 6px; text-transform: uppercase; }
+.etichetta { display: inline-block; margin: 8px 0 2px; background: var(--juniper); color: var(--lime); font-family: var(--display); letter-spacing: .04em; font-size: 1.05rem; padding: 2px 10px; border-radius: 6px; }
 .vote .what { white-space: pre-line; }
 
 .bday { display: grid; gap: 10px; }

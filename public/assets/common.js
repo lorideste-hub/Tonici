@@ -206,21 +206,31 @@ const TRAIL_VOTO_RE = /\s+(\d{1,2}(?:[.,]\d{1,2})?(?:½|\+\+|--|\+|-)?|s\.?\s?v\
 
 // Separa l'etichetta finale tutta in maiuscolo ("... certo certo. MARMOTTA")
 export function splitEtichetta(commento) {
+  const orig = String(commento || "").trim();
+  // link in coda ("… KAGE BUSHIN NO JUTSU https://youtu.be/…"): li metto da parte e li riattacco al commento
+  const urls = [];
+  let base = orig;
+  let mu;
+  while ((mu = base.match(/\s*(https?:\/\/\S+)\s*$/))) { urls.unshift(mu[1]); base = base.slice(0, mu.index).trim(); }
   // "…arriverà…NADIO BATTOCLETTI": stacca l'etichetta attaccata ai puntini
-  const fixed = String(commento || "").trim().replace(/(…|\.\.\.)(?=[A-ZÀ-Þ][^a-zà-ÿ]*$)/, "$1 ");
+  const fixed = base.replace(/(…|\.\.\.)(?=[A-ZÀ-Þ][^a-zà-ÿ]*$)/, "$1 ");
   const toks = fixed.split(/\s+/);
-  let i = toks.length;
-  while (i > 0) {
-    const t = toks[i - 1];
+  const isTagWord = (t) => {
     const letters = t.replace(/[^A-Za-zÀ-ÿ]/g, "");
-    if (/[a-zà-ÿ]/.test(letters)) break; // contiene minuscole
-    if (!letters && !/^[–—\-&]$/.test(t)) break;
-    i--;
-  }
+    if (!letters) return /^[\d()\[\]–—\-&!?.,'’]+$/.test(t); // "(1996)", "–", "!"
+    const up = letters.replace(/[^A-ZÀ-Þ]/g, "").length;
+    if (up === letters.length) return true;
+    // maiuscolo con qualche minuscola giocosa ("BESTa"): inizia maiuscolo e quasi tutto maiuscolo
+    return /^[^a-zà-ÿ]*[A-ZÀ-Þ]/.test(t) && up >= 3 && up / letters.length >= 0.75;
+  };
+  let i = toks.length;
+  while (i > 0 && isTagWord(toks[i - 1])) i--;
+  // non far iniziare l'etichetta con numeri o punteggiatura ("3 GOL" resta nel testo solo se serve)
+  while (i < toks.length && !/[A-Za-zÀ-ÿ]/.test(toks[i])) i++;
   const tag = toks.slice(i).join(" ").replace(/^[–—\-\s]+/, "").trim();
   const rest = toks.slice(0, i).join(" ").trim();
-  if (tag.replace(/[^A-ZÀ-Þ]/g, "").length < 3 || !rest) return { commento: String(commento || "").trim(), etichetta: "" };
-  return { commento: rest, etichetta: tag };
+  if (tag.replace(/[^A-ZÀ-Þ]/g, "").length < 3 || !rest) return { commento: orig, etichetta: "" };
+  return { commento: [rest, ...urls].join(" "), etichetta: tag };
 }
 
 export function parsePagelle(text) {

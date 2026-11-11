@@ -1,4 +1,4 @@
-import {
+import { splitEtichetta,
   esc, linkify, loadData, fmtDate, fmtDateTime, isPlayed, esito, sortedMatches, lastMatch, nextMatch,
   isUs, parseScorers, scorersTable, matchPlayer, sortedStandings, votoClass, parseISODate,
   fmtCompleanno, nextBirthdays, matchScorers, displayName,
@@ -290,10 +290,11 @@ function renderPagelle(data) {
               ${pg.flop ? `<div class="award flop"><div class="t">🫧 ${FLOP_LABEL}</div><div class="n">${esc(pg.flop)}</div></div>` : ""}
             </div>
             <div class="votes">${(pg.voti || [])
-              .map((v) => `<div class="vote"><div class="vnum ${votoClass(v.valore)}">${esc(v.voto)}</div>
+              .map((v0) => { const v = v0.etichetta ? v0 : { ...v0, ...splitEtichetta(v0.commento) };
+                return `<div class="vote"><div class="vnum ${votoClass(v.valore)}">${esc(v.voto)}</div>
                 <div><div class="who">${esc(v.nome)}${pg.mvp && v.nome === pg.mvp ? '<span class="tag">🍋</span>' : ""}${pg.flop && v.nome === pg.flop ? '<span class="tag">🫧</span>' : ""}</div>
-                ${v.etichetta ? `<div class="etichetta">${esc(v.etichetta)}</div>` : ""}
-                <div class="what">${linkify(v.commento)}</div></div></div>`)
+                <div class="what">${linkify(v.commento)}</div>
+                ${v.etichetta ? `<div class="etichetta">${esc(v.etichetta)}</div>` : ""}</div></div>`; })
               .join("")}</div>
           </div>
         </details>`;
