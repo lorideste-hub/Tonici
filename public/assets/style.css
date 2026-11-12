@@ -299,3 +299,46 @@ dialog.distinta::backdrop { background: rgba(7, 37, 38, .75); }
 .dist-actions { display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 18px 18px; }
 .dist-actions .btn:disabled { opacity: .55; cursor: progress; }
 .dist-x:focus-visible, .dist-bar button:focus-visible, .dist-num:focus-visible, .dist-actions .btn:focus-visible, [data-distinta]:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+/* formazione (stile fantacalcio) */
+.card-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+[data-formazione]:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+dialog.formazione { width: min(520px, calc(100vw - 24px)); }
+.fz-body { overflow-y: auto; padding: 14px 14px 18px; }
+.fz-nota { margin: 0 0 12px; padding: 10px 12px; background: var(--lime-soft); border-radius: 10px; font-style: italic; }
+.fz-none { text-align: center; padding: 28px 8px; }
+.fz-pitch {
+  position: relative; width: 100%; aspect-ratio: 68 / 90; border-radius: 12px; overflow: hidden;
+  background: repeating-linear-gradient(180deg, #2f9a4f 0 10%, #2a8c48 10% 20%);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .08);
+}
+.fz-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fz-lines * { fill: none; stroke: rgba(255, 255, 255, .7); stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.fz-lines .dot { fill: rgba(255, 255, 255, .7); }
+.fz-modulo { position: absolute; top: 10px; left: 10px; background: rgba(7, 37, 38, .75); color: var(--lime); font-family: var(--display); font-size: 1.05rem; letter-spacing: .05em; padding: 2px 10px; border-radius: 999px; }
+.fz-player { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; width: 84px; text-align: center; }
+.fz-face {
+  --fz: clamp(48px, 15vw, 64px);
+  position: relative; width: var(--fz); height: var(--fz); flex: none; border-radius: 50%;
+  background: var(--juniper); color: var(--lime); border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0, 0, 0, .3);
+  display: grid; place-items: center; font-family: var(--display); font-size: 1.2rem;
+}
+.fz-face img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.fz-num, .fz-cap {
+  position: absolute; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 999px; display: grid; place-items: center;
+  font: 800 .75rem var(--body); border: 2px solid #fff;
+}
+.fz-num { right: -6px; bottom: -4px; background: #111; color: #fff; }
+.fz-cap { left: -6px; top: -4px; background: var(--amber); color: var(--juniper-deep); }
+.fz-name {
+  margin-top: 4px; max-width: 100%; background: #fff; color: var(--juniper-deep); border-radius: 6px; padding: 1px 6px;
+  font-weight: 800; font-size: .78rem; text-transform: uppercase; letter-spacing: .02em; line-height: 1.35;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+}
+.fz-player.empty .fz-face { background: rgba(255, 255, 255, .18); color: #fff; border-style: dashed; box-shadow: none; }
+.fz-player.empty .fz-name { background: rgba(255, 255, 255, .25); color: #fff; box-shadow: none; }
+.fz-bench { margin-top: 14px; }
+.fz-bench-list { display: flex; flex-wrap: wrap; gap: 12px 6px; margin-top: 6px; }
+.fz-player.bench { position: static; transform: none; width: 76px; }
+.fz-player.bench .fz-face { --fz: 50px; }
+.fz-player.bench .fz-name { background: var(--tonic); box-shadow: none; }

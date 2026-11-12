@@ -2,7 +2,7 @@ import { getStore } from "@netlify/blobs";
 import { SEED, EMPTY } from "../lib/seed.mjs";
 import { checkAuth } from "../lib/auth.mjs";
 
-const SECTIONS = ["squadra", "societa", "rosa", "partite", "classifica", "pagelle", "foto", "link"];
+const SECTIONS = ["squadra", "societa", "rosa", "partite", "classifica", "pagelle", "foto", "link", "formazioni"];
 
 // POST /api/save  { action: "login" } | { action: "reset" } | { section, value }
 export default async (req) => {

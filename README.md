@@ -35,6 +35,7 @@ Apri `https://<nome>.netlify.app/admin.html`, inserisci la password.
 | Giocatori, soprannomi, foto | scheda **Rosa** |
 | Galleria | scheda **Foto** |
 | Storia, organigramma, link esterni | scheda **Società e link** |
+| Formazione della prossima partita (campo con le facce, visibile col pulsante **Formazione** in Home) | scheda **Formazione** |
 | Distinta di gara della prossima partita (PDF precompilato da stampare) | pulsante **Genera distinta** in Home, sotto a Prossima partita |
 | Nome, motto, link al sito del campionato, azzeramento dati di esempio | scheda **Impostazioni** |
 

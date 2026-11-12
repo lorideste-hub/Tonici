@@ -1,7 +1,8 @@
 import {
   esc, linkify, fmtDate, isPlayed, sortedMatches, parsePagelle, parseClassifica, DEFAULT_ORDER,
-  sortedStandings, votoClass, uid, parseISODate,
+  sortedStandings, votoClass, uid, parseISODate, nextMatch,
 } from "./common.js";
+import { MODULI, DEFAULT_MODULO, slots, formazioneFor, presenzeMap, pitchHTML, benchHTML, shortName } from "./formazione.js";
 
 let DATA = null;
 let PWD = "";
@@ -121,6 +122,7 @@ async function enter() {
 // ---------- tabs ----------
 const TABS = [
   ["pagelle", "Pagelle"],
+  ["formazione", "Formazione"],
   ["risultato", "Risultato"],
   ["classifica", "Classifica"],
   ["calendario", "Calendario"],
@@ -136,7 +138,7 @@ function renderTabs() {
   $$("#tabs button").forEach((b) => b.addEventListener("click", () => { TAB = b.dataset.k; renderTabs(); }));
   const body = $("#tab-body");
   body.innerHTML = "";
-  ({ pagelle: tabPagelle, risultato: tabRisultato, classifica: tabClassifica, calendario: tabCalendario, rosa: tabRosa, foto: tabFoto, societa: tabSocieta, impostazioni: tabImpostazioni })[TAB](body);
+  ({ pagelle: tabPagelle, formazione: tabFormazione, risultato: tabRisultato, classifica: tabClassifica, calendario: tabCalendario, rosa: tabRosa, foto: tabFoto, societa: tabSocieta, impostazioni: tabImpostazioni })[TAB](body);
 }
 
 // ---------- PAGELLE ----------
@@ -299,6 +301,136 @@ function tabRisultato(el) {
     p.gf = null; p.gs = null; p.marcatori = "";
     if (await save("partite", "Risultato cancellato")) renderTabs();
   });
+}
+
+// ---------- FORMAZIONE ----------
+let fzDraft = null;
+
+function tabFormazione(el) {
+  const list = sortedMatches(DATA);
+  if (!list.length) {
+    el.innerHTML = `<div class="card"><p class="empty">Il calendario è vuoto: inserisci prima le partite nella scheda Calendario.</p></div>`;
+    return;
+  }
+  const next = nextMatch(DATA);
+  if (!fzDraft || !list.some((p) => p.id === fzDraft.partitaId)) fzDraft = loadDraft((next || list[list.length - 1]).id);
+  const rosa = (DATA.rosa || []).filter((p) => p.ruolo !== "Staff");
+  const pres = presenzeMap(DATA);
+  const byId = new Map(rosa.map((p) => [p.id, p]));
+  const label = (p) => `${shortName(p)}${p.soprannome ? ` – ${p.nome}` : ""} · ${pres.get(p.id) || 0} pres.`;
+  const ordered = (ruolo) => [...rosa].sort((a, b) => {
+    const fit = (p) => (p.ruolo === ruolo ? 0 : !p.ruolo || p.ruolo === "Jolly" ? 1 : 2);
+    return fit(a) - fit(b) || (pres.get(b.id) || 0) - (pres.get(a.id) || 0) || shortName(a).localeCompare(shortName(b), "it");
+  });
+  const pos = slots(fzDraft.modulo);
+  const saved = !!formazioneFor(DATA, fzDraft.partitaId);
+
+  let lastRep = "";
+  const slotRows = pos.map((s, i) => {
+    const head = s.reparto.key !== lastRep ? `<div class="fz-rep">${esc(s.reparto.label)}</div>` : "";
+    lastRep = s.reparto.key;
+    const cur = fzDraft.titolari[i] || "";
+    return `${head}<select data-slot="${i}" aria-label="${esc(s.reparto.ruolo)} ${i}">
+      <option value="">— ${esc(s.reparto.ruolo)} —</option>
+      ${ordered(s.reparto.ruolo).map((p) => `<option value="${esc(p.id)}"${p.id === cur ? " selected" : ""}>${esc(label(p))}${p.ruolo && p.ruolo !== s.reparto.ruolo ? ` (${esc(p.ruolo.toLowerCase())})` : ""}</option>`).join("")}
+    </select>`;
+  }).join("");
+
+  const inCampo = new Set(fzDraft.titolari.filter(Boolean));
+  const benchList = [...rosa].filter((p) => !inCampo.has(p.id))
+    .sort((a, b) => (pres.get(b.id) || 0) - (pres.get(a.id) || 0) || shortName(a).localeCompare(shortName(b), "it"));
+  const convocati = [...fzDraft.titolari.filter(Boolean), ...fzDraft.panchina].map((id) => byId.get(id)).filter(Boolean);
+
+  el.innerHTML = `<div class="card">
+    <h3>Formazione</h3>
+    <div class="help">Scegli la partita e il modulo, poi metti i giocatori al loro posto in base a chi c'è. Nei menu i giocatori del ruolo giusto sono in cima, ordinati per presenze. In Home, sotto a Prossima partita, il pulsante <strong>Formazione</strong> mostra il campo con le facce.</div>
+    <div class="row">
+      <div><label for="fz-match">Partita</label>
+        <select id="fz-match">${list.map((p) => `<option value="${p.id}"${p.id === fzDraft.partitaId ? " selected" : ""}>${esc(matchLabel(p))}${formazioneFor(DATA, p.id) ? " ✔" : ""}</option>`).join("")}</select></div>
+      <div><label for="fz-modulo">Modulo</label>
+        <select id="fz-modulo">${MODULI.map((m) => `<option${m === fzDraft.modulo ? " selected" : ""}>${m}</option>`).join("")}</select></div>
+    </div>
+    <div class="fz-admin">
+      <div>
+        <label>Titolari</label>
+        <div class="fz-slots">${slotRows}</div>
+        <label>Panchina</label>
+        <div class="fz-benchpick">${benchList.length ? benchList.map((p) => `<label class="fz-check"><input type="checkbox" value="${esc(p.id)}"${fzDraft.panchina.includes(p.id) ? " checked" : ""}> ${esc(label(p))}</label>`).join("") : `<span class="small">Tutta la rosa è in campo.</span>`}</div>
+        <div class="row">
+          <div><label for="fz-cap">Capitano</label>
+            <select id="fz-cap"><option value="">—</option>${convocati.map((p) => `<option value="${esc(p.id)}"${p.id === fzDraft.capitano ? " selected" : ""}>${esc(shortName(p))}</option>`).join("")}</select></div>
+        </div>
+        <label for="fz-nota">Messaggio del mister (facoltativo)</label>
+        <input id="fz-nota" placeholder="Es. ritrovo alle 20:45, chi arriva tardi offre il giro" value="${esc(fzDraft.nota || "")}">
+      </div>
+      <div><label>Anteprima</label>${pitchHTML(fzDraft, DATA)}${benchHTML(fzDraft, DATA)}</div>
+    </div>
+    <div class="actions">
+      <button class="btn lime" id="fz-save">Pubblica formazione</button>
+      ${saved ? `<button class="btn ghost" id="fz-del">Togli formazione</button>` : ""}
+      <span class="small">${saved ? "Già pubblicata: salvando la aggiorni." : "Non ancora pubblicata."}</span>
+    </div>
+  </div>`;
+
+  $("#fz-match").addEventListener("change", (e) => { fzDraft = loadDraft(e.target.value); renderTabs(); });
+  $("#fz-modulo").addEventListener("change", (e) => { fzDraft = changeModulo(fzDraft, e.target.value); renderTabs(); });
+  $$("[data-slot]", el).forEach((sel) => sel.addEventListener("change", () => {
+    const i = Number(sel.dataset.slot);
+    const id = sel.value;
+    if (id) {
+      fzDraft.titolari = fzDraft.titolari.map((x, k) => (k !== i && x === id ? "" : x));
+      fzDraft.panchina = fzDraft.panchina.filter((x) => x !== id);
+    }
+    fzDraft.titolari[i] = id;
+    readExtras();
+    renderTabs();
+  }));
+  $$(".fz-benchpick input", el).forEach((cb) => cb.addEventListener("change", () => {
+    fzDraft.panchina = $$(".fz-benchpick input:checked", el).map((x) => x.value);
+    readExtras();
+    renderTabs();
+  }));
+  $("#fz-cap").addEventListener("change", () => { readExtras(); renderTabs(); });
+  function readExtras() {
+    fzDraft.capitano = $("#fz-cap").value;
+    fzDraft.nota = $("#fz-nota").value.trim();
+  }
+  $("#fz-save").addEventListener("click", async () => {
+    readExtras();
+    const n = fzDraft.titolari.filter(Boolean).length;
+    if (!n) return toast("Metti almeno un giocatore in campo", true);
+    if (n < pos.length && !confirm(`In campo ci sono solo ${n} giocatori su ${pos.length}. Pubblico lo stesso?`)) return;
+    const f = { ...fzDraft, aggiornata: new Date().toISOString() };
+    const keep = (DATA.formazioni || []).filter((x) => x.partitaId !== f.partitaId);
+    DATA.formazioni = [...keep, f];
+    if (await save("formazioni", "Formazione pubblicata")) renderTabs();
+  });
+  $("#fz-del")?.addEventListener("click", async () => {
+    if (!confirm("Togliere la formazione pubblicata per questa partita?")) return;
+    DATA.formazioni = (DATA.formazioni || []).filter((x) => x.partitaId !== fzDraft.partitaId);
+    if (await save("formazioni", "Formazione tolta")) { fzDraft = loadDraft(fzDraft.partitaId); renderTabs(); }
+  });
+}
+
+function loadDraft(partitaId) {
+  const f = formazioneFor(DATA, partitaId);
+  if (f) return structuredClone({ panchina: [], capitano: "", nota: "", ...f, titolari: [...(f.titolari || [])] });
+  // Nuova formazione: parte dal modulo dell'ultima pubblicata
+  const last = [...(DATA.formazioni || [])].sort((a, b) => (b.aggiornata || "").localeCompare(a.aggiornata || ""))[0];
+  const modulo = last?.modulo || DEFAULT_MODULO;
+  return { partitaId, modulo, titolari: slots(modulo).map(() => ""), panchina: [], capitano: "", nota: "" };
+}
+
+// Cambio modulo: ogni giocatore resta nel suo reparto finché c'è posto, gli altri riempiono i posti liberi o vanno in panchina
+function changeModulo(f, modulo) {
+  const oldPos = slots(f.modulo);
+  const newPos = slots(modulo);
+  const pool = {};
+  oldPos.forEach((s, i) => { if (f.titolari[i]) (pool[s.reparto.key] ||= []).push(f.titolari[i]); });
+  const titolari = newPos.map((s) => (pool[s.reparto.key] || []).shift() || "");
+  const rest = Object.values(pool).flat();
+  for (let i = 0; i < titolari.length && rest.length; i++) if (!titolari[i]) titolari[i] = rest.shift();
+  return { ...f, modulo, titolari, panchina: [...rest, ...f.panchina.filter((x) => !rest.includes(x))] };
 }
 
 // ---------- CLASSIFICA ----------
