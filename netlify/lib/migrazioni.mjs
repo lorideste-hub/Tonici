@@ -2,19 +2,20 @@
 
 const norm = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
+// 13/11/2026: giocatori non più in rosa -> "Le glorie del passato" (fuori da formazione e distinta)
+function glorie(data) {
+  const nomi = ["emmanuel", "bottona", "melotto"];
+  const sopr = ["raffa", "apo"];
+  for (const p of data.rosa || []) {
+    const n = norm(p.nome).split(/\s+/);
+    if (nomi.some((x) => n.includes(x)) || sopr.includes(norm(p.soprannome).trim())) p.ex = true;
+  }
+}
+
 const MIGRAZIONI = [
-  {
-    // 13/11/2026: giocatori non più in rosa -> "Le glorie del passato" (fuori da formazione e distinta)
-    nome: "glorie-2026-11",
-    run(data) {
-      const nomi = ["emmanuel", "bottona", "melotto"];
-      const sopr = ["raffa", "apo"];
-      for (const p of data.rosa || []) {
-        const n = norm(p.nome).split(/\s+/);
-        if (nomi.some((x) => n.includes(x)) || sopr.includes(norm(p.soprannome).trim())) p.ex = true;
-      }
-    },
-  },
+  { nome: "glorie-2026-11", run: glorie },
+  // la prima passata è stata sovrascritta da un salvataggio della rosa fatto con l'Admin non ancora aggiornato
+  { nome: "glorie-2026-11-bis", run: glorie },
 ];
 
 // Restituisce true se ha modificato i dati
