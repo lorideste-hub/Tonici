@@ -6,7 +6,7 @@
 // di classifica/risultati (gol fatti e subiti, forma recente). Chi segna e chi sbaglia dipende
 // invece dalla formazione, dai gol stagionali e dalla media voto delle pagelle.
 
-import { esc, fmtDate, matchPlayer, isUs, scorersTable } from "./common.js";
+import { esc, fmtDate, matchPlayer, isUs, scorersTable, isAttivo } from "./common.js";
 import { formazioneFor, slots, presenzeMap, shortName, DEFAULT_MODULO } from "./formazione.js";
 
 const TEMPO = 25;        // minuti per tempo (calciotto)
@@ -155,7 +155,7 @@ function lineup(data, match, info) {
   });
   const auto = picks.some((p) => !p);
   const pool = () => (data.rosa || [])
-    .filter((p) => p.ruolo !== "Staff" && !used.has(p.id))
+    .filter((p) => isAttivo(p) && !used.has(p.id))
     .sort((a, b) => info(b.id).pres - info(a.id).pres || info(b.id).goals - info(a.id).goals || a.nome.localeCompare(b.nome));
   const take = (p) => { if (p) used.add(p.id); return p || null; };
   if (!picks[0]) {

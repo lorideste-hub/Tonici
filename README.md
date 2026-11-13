@@ -32,7 +32,7 @@ Apri `https://<nome>.netlify.app/admin.html`, inserisci la password.
 | Pagelle (incolla il testo) | scheda **Pagelle** |
 | Classifica (arriva da sola; in alternativa si incolla) | scheda **Classifica** |
 | Partite, date e orari | scheda **Calendario** |
-| Giocatori, soprannomi, foto | scheda **Rosa** |
+| Giocatori, soprannomi, foto; chi non è più in rosa si spunta come "Gloria del passato" | scheda **Rosa** |
 | Galleria | scheda **Foto** |
 | Storia, organigramma, link esterni | scheda **Società e link** |
 | Formazione della prossima partita (campo con le facce, visibile col pulsante **Formazione** in Home) | scheda **Formazione** |

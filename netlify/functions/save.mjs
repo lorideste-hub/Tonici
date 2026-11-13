@@ -1,6 +1,7 @@
 import { getStore } from "@netlify/blobs";
 import { SEED, EMPTY } from "../lib/seed.mjs";
 import { checkAuth } from "../lib/auth.mjs";
+import { migra } from "../lib/migrazioni.mjs";
 
 const SECTIONS = ["squadra", "societa", "rosa", "partite", "classifica", "pagelle", "foto", "link", "formazioni"];
 
@@ -33,6 +34,7 @@ export default async (req) => {
   }
 
   const data = (await store.get("site", { type: "json" })) || structuredClone(SEED);
+  migra(data);
   data[body.section] = body.value;
   if (body.section === "classifica") data.classificaAggiornata = new Date().toISOString();
   data.aggiornato = new Date().toISOString();

@@ -236,39 +236,47 @@ function playerStats(pl, data) {
 function renderSquadra(data) {
   const ORDER = ["Portiere", "Difensore", "Centrocampista", "Attaccante", "Jolly", "Staff"];
   const PLURAL = { Portiere: "Portieri", Difensore: "Difensori", Centrocampista: "Centrocampisti", Attaccante: "Attaccanti", Jolly: "Jolly", Staff: "Staff tecnico", Rosa: "La rosa" };
-  const rosa = data.rosa || [];
-  if (!rosa.length) return `${pageHead("La Squadra")}<main><div class="wrap"><p class="empty">La rosa arriva presto: il mister sta ancora facendo i provini.</p></div></main>`;
+  const glorie = (data.rosa || []).filter((p) => p.ex);
+  const rosa = (data.rosa || []).filter((p) => !p.ex);
+  if (!rosa.length && !glorie.length) return `${pageHead("La Squadra")}<main><div class="wrap"><p class="empty">La rosa arriva presto: il mister sta ancora facendo i provini.</p></div></main>`;
   const groups = {};
   for (const p of rosa) (groups[p.ruolo || "Rosa"] ||= []).push(p);
   const keys = [...ORDER.filter((k) => groups[k]), ...Object.keys(groups).filter((k) => !ORDER.includes(k))];
   const hasDistinte = (data.partite || []).some((p) => p.distinta?.presenti?.length);
+  const byNum = (a, b) => (a.numero === "" || a.numero == null ? 999 : a.numero) - (b.numero === "" || b.numero == null ? 999 : b.numero) || a.nome.localeCompare(b.nome);
+  const card = (p, k, extra = "") => {
+    const st = playerStats(p, data);
+    const initials = (p.nome || "?").split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+    return `<div class="card player${extra}">
+      <div class="avatar">${p.foto ? `<img src="${esc(p.foto)}" alt="${esc(p.nome)}" loading="lazy">` : esc(initials)}${p.numero ? `<span class="num">${esc(p.numero)}</span>` : ""}</div>
+      <div>
+        <h3>${esc(p.nome)}</h3>
+        ${p.soprannome ? `<div class="nick">“${esc(p.soprannome)}”</div>` : ""}
+        ${p.bio ? `<div class="small" style="margin-top:4px">${esc(p.bio)}</div>` : ""}
+        ${k !== "Staff" ? `<div class="stats">
+          ${hasDistinte ? `<span class="chip">👕 ${st.presenze} ${st.presenze === 1 ? "presenza" : "presenze"}</span>` : ""}
+          <span class="chip">⚽ ${st.goals}</span>
+          ${st.avg !== null ? `<span class="chip">Media ${st.avg.toFixed(2).replace(".", ",")}</span>` : ""}
+          ${st.mvps ? `<span class="chip">🍋 ×${st.mvps}</span>` : ""}
+          ${p.compleanno ? `<span class="chip">🎂 ${fmtCompleanno(p.compleanno)}</span>` : ""}
+        </div>` : ""}
+      </div>
+    </div>`;
+  };
   return `${pageHead("La Squadra", `${rosa.length} elementi, zero alibi`)}
   <main><div class="wrap">
     ${data.squadra?.fotoSquadra ? `<figure class="team-photo"><img src="${esc(data.squadra.fotoSquadra)}" alt="Foto di squadra"></figure>` : ""}
     ${keys.map((k) => `
       <h2 class="role-title">${esc(PLURAL[k] || k)}</h2>
       <div class="grid grid-3">${groups[k]
-        .sort((a, b) => (a.numero === "" || a.numero == null ? 999 : a.numero) - (b.numero === "" || b.numero == null ? 999 : b.numero) || a.nome.localeCompare(b.nome))
-        .map((p) => {
-          const st = playerStats(p, data);
-          const initials = (p.nome || "?").split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-          return `<div class="card player">
-            <div class="avatar">${p.foto ? `<img src="${esc(p.foto)}" alt="${esc(p.nome)}" loading="lazy">` : esc(initials)}${p.numero ? `<span class="num">${esc(p.numero)}</span>` : ""}</div>
-            <div>
-              <h3>${esc(p.nome)}</h3>
-              ${p.soprannome ? `<div class="nick">“${esc(p.soprannome)}”</div>` : ""}
-              ${p.bio ? `<div class="small" style="margin-top:4px">${esc(p.bio)}</div>` : ""}
-              ${k !== "Staff" ? `<div class="stats">
-                ${hasDistinte ? `<span class="chip">👕 ${st.presenze} ${st.presenze === 1 ? "presenza" : "presenze"}</span>` : ""}
-                <span class="chip">⚽ ${st.goals}</span>
-                ${st.avg !== null ? `<span class="chip">Media ${st.avg.toFixed(2).replace(".", ",")}</span>` : ""}
-                ${st.mvps ? `<span class="chip">🍋 ×${st.mvps}</span>` : ""}
-                ${p.compleanno ? `<span class="chip">🎂 ${fmtCompleanno(p.compleanno)}</span>` : ""}
-              </div>` : ""}
-            </div>
-          </div>`;
-        })
+        .sort(byNum)
+        .map((p) => card(p, k))
         .join("")}</div>`).join("")}
+    ${glorie.length ? `<section class="glorie section">
+      <h2 class="role-title">🏛️ Le glorie del passato</h2>
+      <p class="small">Non più in rosa, mai dimenticati. Le loro statistiche restano agli atti (e i loro debiti al bar pure).</p>
+      <div class="grid grid-3">${[...glorie].sort(byNum).map((p) => card(p, "Gloria", " gloria")).join("")}</div>
+    </section>` : ""}
   </div></main>`;
 }
 

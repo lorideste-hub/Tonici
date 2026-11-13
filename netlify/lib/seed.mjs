@@ -82,6 +82,7 @@ export const SEED = {
    },
    {
     "id": "p5",
+    "ex": true,
     "numero": "",
     "nome": "Andrea Bottona",
     "soprannome": "",
@@ -148,6 +149,7 @@ export const SEED = {
    },
    {
     "id": "p11",
+    "ex": true,
     "numero": "",
     "nome": "Jacopo De Rossi",
     "soprannome": "APO",
@@ -170,6 +172,7 @@ export const SEED = {
    },
    {
     "id": "p13",
+    "ex": true,
     "numero": 22,
     "nome": "Raffaele Federico",
     "soprannome": "RAFFA",
@@ -236,6 +239,7 @@ export const SEED = {
    },
    {
     "id": "p19",
+    "ex": true,
     "numero": "",
     "nome": "Federico Melotto",
     "soprannome": "FEDE",
@@ -357,6 +361,7 @@ export const SEED = {
    },
    {
     "id": "p30",
+    "ex": true,
     "numero": "",
     "nome": "Emmanuel Udoye",
     "soprannome": "",

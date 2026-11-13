@@ -48,6 +48,9 @@ export function fmtDateTime(iso) {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+// Giocatori selezionabili per formazione, distinta e simulazione: niente staff e niente "glorie del passato"
+export const isAttivo = (p) => !!p && p.ruolo !== "Staff" && !p.ex;
+
 export const isPlayed = (p) => p.gf !== null && p.gf !== undefined && p.gf !== "" && p.gs !== null && p.gs !== undefined && p.gs !== "";
 
 export function esito(p) {

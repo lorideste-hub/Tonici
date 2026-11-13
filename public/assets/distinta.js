@@ -2,7 +2,7 @@
 // Il modulo vuoto è /assets/distinta-template.pdf: per la stagione nuova basta sostituire quel file
 // (se cambia l'impaginazione vanno ritoccate le coordinate in fillDistinta).
 
-import { esc, fmtDate, matchPlayer } from "./common.js";
+import { esc, fmtDate, matchPlayer, isAttivo } from "./common.js";
 import { formazioneFor } from "./formazione.js";
 
 export const MAX_GIOCATORI = 15;
@@ -26,13 +26,16 @@ export function cognomeNome(nome) {
 // Giocatori selezionabili: chi ha più presenze in cima; a parità, ordine alfabetico (cognome).
 // Le presenze sono quelle delle distinte ufficiali lette dal sito del campionato.
 export function distintaPlayers(data) {
-  const rosa = (data.rosa || []).filter((p) => p.ruolo !== "Staff");
+  // il nome si riconosce su tutta la rosa, ma le glorie del passato non finiscono tra le scelte
+  const tutti = (data.rosa || []).filter((p) => p.ruolo !== "Staff");
+  const rosa = tutti.filter(isAttivo);
   const presenze = new Map();
   const ufficiale = new Map();
   const extra = new Map();
   for (const p of data.partite || []) {
     for (const n of p.distinta?.presenti || []) {
-      const pl = matchPlayer(n, rosa);
+      const pl = matchPlayer(n, tutti);
+      if (pl && !isAttivo(pl)) continue;
       if (pl) {
         presenze.set(pl, (presenze.get(pl) || 0) + 1);
         ufficiale.set(pl, n);
@@ -45,7 +48,7 @@ export function distintaPlayers(data) {
     }
   }
   for (const m of data.marcatoriUfficiali || []) {
-    const pl = matchPlayer(m.nome, rosa);
+    const pl = matchPlayer(m.nome, tutti);
     if (pl && !ufficiale.has(pl)) ufficiale.set(pl, m.nome);
   }
   const list = rosa.map((pl, i) => ({

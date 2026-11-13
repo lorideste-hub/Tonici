@@ -71,3 +71,7 @@ label { display: block; font-weight: 700; font-size: .85rem; text-transform: upp
 .fz-benchpick { display: grid; gap: 2px 12px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
 .fz-check { display: flex; gap: 8px; align-items: center; margin: 0; padding: 5px 0; font-weight: 500; font-size: .95rem; text-transform: none; letter-spacing: 0; color: var(--ink); cursor: pointer; }
 .fz-check input { width: 18px; height: 18px; flex: none; accent-color: var(--juniper); }
+.player-edit .fields .ex-check { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 600; color: var(--muted); cursor: pointer; }
+.player-edit .fields .ex-check input { width: 18px; height: 18px; accent-color: var(--juniper); }
+.player-edit.is-ex { opacity: .6; }
+.player-edit.is-ex .ex-check { color: var(--juniper); }

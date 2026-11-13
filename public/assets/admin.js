@@ -1,6 +1,6 @@
 import {
   esc, linkify, fmtDate, isPlayed, sortedMatches, parsePagelle, parseClassifica, DEFAULT_ORDER,
-  sortedStandings, votoClass, uid, parseISODate, nextMatch,
+  sortedStandings, votoClass, uid, parseISODate, nextMatch, isAttivo,
 } from "./common.js";
 import { MODULI, DEFAULT_MODULO, slots, formazioneFor, presenzeMap, pitchHTML, benchHTML, shortName } from "./formazione.js";
 
@@ -314,7 +314,7 @@ function tabFormazione(el) {
   }
   const next = nextMatch(DATA);
   if (!fzDraft || !list.some((p) => p.id === fzDraft.partitaId)) fzDraft = loadDraft((next || list[list.length - 1]).id);
-  const rosa = (DATA.rosa || []).filter((p) => p.ruolo !== "Staff");
+  const rosa = (DATA.rosa || []).filter(isAttivo);
   const pres = presenzeMap(DATA);
   const byId = new Map(rosa.map((p) => [p.id, p]));
   const label = (p) => `${shortName(p)}${p.soprannome ? ` – ${p.nome}` : ""} · ${pres.get(p.id) || 0} pres.`;
@@ -561,7 +561,7 @@ function tabRosa(el) {
   const rosa = DATA.rosa || [];
   el.innerHTML = `<div class="card">
     <h3>Rosa</h3>
-    <div class="help">Soprannome e "altri nomi" collegano le pagelle al giocatore (es. Isacco Rossi è IGOR ma in pagella diventa ISIS). Del compleanno si pubblicano solo giorno e mese.</div>
+    <div class="help">Soprannome e "altri nomi" collegano le pagelle al giocatore (es. Isacco Rossi è IGOR ma in pagella diventa ISIS). Del compleanno si pubblicano solo giorno e mese. Chi non è più in rosa spuntalo come <strong>Gloria del passato</strong>: resta nella pagina Squadra in una sezione a parte, ma non compare più in formazione, distinta e simulazione.</div>
     <div id="rosa-list">${rosa.map(playerHTML).join("")}</div>
     <div class="actions">
       <button class="btn ghost" id="rosa-add">+ Aggiungi giocatore</button>
@@ -570,7 +570,7 @@ function tabRosa(el) {
   </div>`;
   function playerHTML(p) {
     const initials = (p.nome || "?").split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-    return `<div class="player-edit" data-id="${esc(p.id)}" data-foto="${esc(p.foto || "")}">
+    return `<div class="player-edit${p.ex ? " is-ex" : ""}" data-id="${esc(p.id)}" data-foto="${esc(p.foto || "")}">
       <div><div class="avatar">${p.foto ? `<img src="${esc(p.foto)}" alt="">` : esc(initials)}</div></div>
       <div>
         <div class="fields">
@@ -581,6 +581,7 @@ function tabRosa(el) {
           <input class="wide" name="alias" placeholder="Altri nomi usati nelle pagelle (separati da virgola)" value="${esc(p.alias || "")}">
           <input name="compleanno" placeholder="gg/mm" title="Compleanno (solo giorno e mese)" value="${esc(p.compleanno ? p.compleanno.split("-").reverse().join("/") : "")}">
           <input class="wide2" name="bio" placeholder="Descrizione goliardica" value="${esc(p.bio || "")}">
+          <label class="ex-check"><input type="checkbox" name="ex"${p.ex ? " checked" : ""}> 🏛️ Gloria del passato (non più in rosa)</label>
         </div>
         <div class="tools">
           <label class="btn sm ghost" style="margin:0;text-transform:none;letter-spacing:0">📷 Foto<input type="file" accept="image/*" hidden data-photo></label>
@@ -601,8 +602,10 @@ function tabRosa(el) {
       alias: $("[name=alias]", d).value.trim(),
       compleanno: (() => { const m = $("[name=compleanno]", d).value.trim().match(/^(\d{1,2})[\/.\-](\d{1,2})/); return m ? `${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` : ""; })(),
       foto: d.dataset.foto || "",
+      ...($("[name=ex]", d).checked ? { ex: true } : {}),
     })).filter((p) => p.nome);
   const bind = () => {
+    $$("[name=ex]", el).forEach((c) => (c.onchange = () => c.closest(".player-edit").classList.toggle("is-ex", c.checked)));
     $$("[data-rmp]", el).forEach((b) => (b.onclick = () => confirm("Eliminare il giocatore?") && b.closest(".player-edit").remove()));
     $$("[data-nophoto]", el).forEach((b) => (b.onclick = () => { const d = b.closest(".player-edit"); d.dataset.foto = ""; $(".avatar", d).textContent = "—"; b.remove(); }));
     $$("[data-photo]", el).forEach((inp) => (inp.onchange = async () => {

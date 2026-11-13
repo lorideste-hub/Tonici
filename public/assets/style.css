@@ -390,3 +390,8 @@ dialog.simula { width: min(860px, calc(100vw - 16px)); }
 dialog.simula .dist-head { padding: 12px 16px 8px; }
 dialog.simula .dist-head h3 { font-size: 1.1rem; }
 .sim-board, .sim-stage, .sim-controls { flex: none; }
+
+/* glorie del passato */
+.glorie .role-title::after { background: var(--amber); }
+.card.player.gloria { background: #f3efe2; }
+.card.player.gloria .avatar { filter: grayscale(1) sepia(.35); }
