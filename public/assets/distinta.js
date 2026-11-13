@@ -3,6 +3,7 @@
 // (se cambia l'impaginazione vanno ritoccate le coordinate in fillDistinta).
 
 import { esc, fmtDate, matchPlayer } from "./common.js";
+import { formazioneFor } from "./formazione.js";
 
 export const MAX_GIOCATORI = 15;
 const TEMPLATE_URL = "/assets/distinta-template.pdf";
@@ -179,7 +180,20 @@ export function openDistinta(p, data) {
   const head = distintaHeader(p, data);
   const players = distintaPlayers(data);
   const saved = readStore();
-  const sel = new Set((saved.sel || []).filter((k) => players.some((x) => x.key === k)).slice(0, MAX_GIOCATORI));
+  // Selezione iniziale: se per questa partita la distinta è già stata ritoccata, vale quella;
+  // altrimenti, se il mister ha inserito la formazione, titolari + panchina; altrimenti l'ultima usata.
+  const valid = (keys) => keys.filter((k) => players.some((x) => x.key === k)).slice(0, MAX_GIOCATORI);
+  const f = formazioneFor(data, p.id);
+  const fIds = f ? [...new Set([...(f.titolari || []), ...(f.panchina || [])].filter(Boolean))] : [];
+  const daFormazione = valid(fIds.map((id) => `r:${id}`));
+  let fonte = "";
+  let initial;
+  const fSig = fIds.join(",");
+  // se il mister cambia la formazione dopo, riparte dalla formazione nuova
+  if (saved.partitaId === p.id && (saved.fSig || "") === fSig && Array.isArray(saved.sel)) initial = valid(saved.sel);
+  else if (daFormazione.length) { initial = daFormazione; fonte = `Già selezionati: ${daFormazione.length} giocatori della formazione (campo e panchina).`; }
+  else initial = valid(saved.sel || []);
+  const sel = new Set(initial);
   const numeri = saved.numeri || {};
   loadAssets().catch(() => {});
 
@@ -239,7 +253,7 @@ export function openDistinta(p, data) {
       if (pl && v !== String(pl.numero ?? "")) nums[i.dataset.key] = v;
     }
     const keys = boxes.filter((b) => b.checked).map((b) => b.value);
-    writeStore({ sel: keys, numeri: nums });
+    writeStore({ partitaId: p.id, fSig, sel: keys, numeri: nums });
     return players.filter((x) => keys.includes(x.key)).map((x) => ({ nome: x.nome, numero: nums[x.key] ?? x.numero ?? "" }));
   };
   dlg.addEventListener("change", (e) => { if (e.target.type === "checkbox") refresh(); });
@@ -293,5 +307,6 @@ export function openDistinta(p, data) {
   });
 
   refresh();
+  if (fonte && !msg.textContent) msg.textContent = fonte;
   dlg.showModal();
 }
