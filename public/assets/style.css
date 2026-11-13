@@ -342,3 +342,51 @@ dialog.formazione { width: min(520px, calc(100vw - 24px)); }
 .fz-player.bench { position: static; transform: none; width: 76px; }
 .fz-player.bench .fz-face { --fz: 50px; }
 .fz-player.bench .fz-name { background: var(--tonic); box-shadow: none; }
+
+/* simula partita (stile manageriale anni 2000) */
+.btn.sim-btn { background: var(--amber); color: var(--juniper-deep); }
+.btn.sim-btn:hover { background: #ffc757; color: var(--juniper-deep); }
+[data-simula]:focus-visible { outline: 3px solid var(--juniper); outline-offset: 2px; }
+dialog.simula { width: min(860px, calc(100vw - 16px)); }
+.sim-board {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px 10px;
+  padding: 8px 14px; background: #0b0f0f; color: #fff; font-family: var(--display); letter-spacing: .03em;
+}
+.sim-team { font-size: clamp(.85rem, 2.6vw, 1.15rem); text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sim-team.r { text-align: right; }
+.sim-team.us { color: var(--lime); }
+.sim-score { display: flex; gap: 6px; align-items: center; font-size: clamp(1.4rem, 5vw, 2rem); }
+.sim-score b { min-width: 1.3em; text-align: center; background: #1d2626; border-radius: 6px; padding: 0 6px; font-weight: 400; color: var(--amber); font-variant-numeric: tabular-nums; }
+.sim-score i { font-style: normal; color: #6b7a7a; }
+.sim-clock { grid-column: 1 / -1; text-align: center; font: 700 .85rem var(--body); color: #9fb3b0; letter-spacing: .08em; }
+.sim-stage { position: relative; background: #256f3c; }
+.sim-canvas { display: block; width: 100%; }
+.sim-intro, .sim-end { position: absolute; inset: 0; display: grid; place-items: center; padding: 10px; background: rgba(7, 37, 38, .72); }
+.sim-end[hidden] { display: none; }
+.sim-intro-box, .sim-end-box {
+  width: min(460px, 100%); max-height: 100%; overflow-y: auto; background: var(--paper); border-radius: 12px; padding: 14px 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35); text-align: center;
+}
+.sim-intro-box p, .sim-end-box p { margin: 6px 0; font-size: .92rem; }
+.sim-intro-box .btn, .sim-end-box .btn { margin-top: 8px; }
+.sim-final { font-family: var(--display); font-size: clamp(1.2rem, 4.5vw, 1.8rem); text-transform: uppercase; color: var(--juniper); margin: 4px 0; }
+.sim-end-box .awards { margin: 10px 0 4px; text-align: left; }
+.sim-end-box .award .n { font-size: 1.25rem; }
+.sim-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.sim-controls .btn { padding: 8px 14px; font-size: .92rem; }
+.sim-controls .btn:disabled { opacity: .45; cursor: default; }
+.sim-speed { margin-left: auto; }
+.sim-ticker { list-style: none; margin: 0; padding: 6px 14px 14px; overflow-y: auto; flex: 1 1 auto; min-height: 90px; max-height: 32vh; font-size: .92rem; }
+.sim-ticker li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.sim-ticker li b { display: inline-block; min-width: 2.4em; color: var(--juniper-soft); font-variant-numeric: tabular-nums; }
+.sim-ticker li.goal { font-weight: 700; color: var(--juniper); }
+.sim-ticker li.goal::before { content: "⚽ "; }
+@media (max-width: 560px) {
+  dialog.simula[open] { display: block; overflow-y: auto; }
+  .sim-intro, .sim-end { position: static; background: var(--juniper-deep); }
+  .sim-intro-box, .sim-end-box { max-height: none; }
+  .sim-ticker { max-height: none; }
+}
+dialog.simula .dist-head { padding: 12px 16px 8px; }
+dialog.simula .dist-head h3 { font-size: 1.1rem; }
+.sim-board, .sim-stage, .sim-controls { flex: none; }

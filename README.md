@@ -37,6 +37,7 @@ Apri `https://<nome>.netlify.app/admin.html`, inserisci la password.
 | Storia, organigramma, link esterni | scheda **Società e link** |
 | Formazione della prossima partita (campo con le facce, visibile col pulsante **Formazione** in Home) | scheda **Formazione** |
 | Distinta di gara della prossima partita (PDF precompilato da stampare) | pulsante **Genera distinta** in Home, sotto a Prossima partita |
+| Simulazione goliardica della prossima partita (campo dall'alto, pedine della Formazione, cronaca e risultato) | pulsante **Simula partita** in Home, accanto a Formazione |
 | Nome, motto, link al sito del campionato, azzeramento dati di esempio | scheda **Impostazioni** |
 
 Il sito parte già con calendario, classifica e marcatori veri (al 30/10/2026). In **Rosa** ci sono i 7 marcatori ufficiali con ruolo "Jolly": completa la rosa con ruoli, numeri, soprannomi e foto.
@@ -61,3 +62,4 @@ Le righe `Titolo`, `MVP`, `Flop` sono facoltative.
 - Il piano gratuito di Netlify ha un tetto mensile di crediti: per un sito di squadra il consumo è minimo.
 - Per cambiare grafica: `public/assets/style.css` (colori in cima al file) e `public/assets/logo.svg`.
 - La distinta di gara viene compilata nel browser sul modulo ufficiale `public/assets/distinta-template.pdf` (da sostituire a inizio stagione); coordinate dei campi in `public/assets/distinta.js`.
+- La simulazione partita (`public/assets/simula.js`) dà un pronostico fisso per ogni partita: il punteggio dipende dall'id della partita e da classifica/risultati (gol fatti e subiti, ultime 3 giornate); marcatori e protagonisti dipendono da formazione, gol stagionali e media voto delle pagelle. Durata massima circa 2 minuti a velocità 1,5x (tasto 2x).

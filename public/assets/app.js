@@ -5,6 +5,7 @@ import { splitEtichetta,
 } from "./common.js";
 import { openDistinta } from "./distinta.js";
 import { openFormazione } from "./formazione.js";
+import { openSimulazione } from "./simula.js";
 
 const NAV = [
   ["home", "/", "Home"],
@@ -96,6 +97,7 @@ function nextCard(p, data) {
     <div class="card-actions">
       <button type="button" class="btn" data-distinta="${esc(p.id)}">📋 Genera distinta</button>
       <button type="button" class="btn lime" data-formazione="${esc(p.id)}">⚽ Formazione</button>
+      <button type="button" class="btn sim-btn" data-simula="${esc(p.id)}">🎲 Simula partita</button>
     </div>
   </div>`;
 }
@@ -447,6 +449,9 @@ const RENDER = { home: renderHome, societa: renderSocieta, squadra: renderSquadr
       const fid = e.target.closest("[data-formazione]")?.dataset.formazione;
       const fm = fid && (data.partite || []).find((p) => p.id === fid);
       if (fm) openFormazione(fm, data);
+      const sid = e.target.closest("[data-simula]")?.dataset.simula;
+      const sm = sid && (data.partite || []).find((p) => p.id === sid);
+      if (sm) openSimulazione(sm, data);
     });
     if (location.hash) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
   } catch (e) {
